@@ -6,6 +6,7 @@ using UnityEngine;
 public class InputBehaviour : MonoBehaviour
 {
     float playerSpeed = 10; //speed player moves
+    public GameObject bullet;
     private  Animator anim;
     private bool knifeActive = true;
     private bool handgunActive = false;
@@ -72,10 +73,11 @@ public class InputBehaviour : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
-            //We should check our atackspeed before we fire, we dont atm
+            //We should check our atackspeed before we fire, we dont atm    
             if (!knifeActive)
             {
                 anim.SetTrigger("shoot");
+                Fire();
             }
         }
         if (Input.GetMouseButtonDown(1))
@@ -132,5 +134,13 @@ public class InputBehaviour : MonoBehaviour
             }
             
         }
+    }
+
+    void Fire(){
+
+        GameObject myBullet = Instantiate(bullet, transform.position + transform.up, Quaternion.identity);
+        BulletInformation bulletInfo = myBullet.GetComponent<BulletInformation> ();
+        bulletInfo.InitiateBullet(1, 100f, transform.up);
+        
     }
 }

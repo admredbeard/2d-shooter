@@ -53,9 +53,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\PlayerBehaviour.cs" />
-     <Compile Include="Assets\ProjectileBehaviour.cs" />
+     <Compile Include="Assets\Scripts\BulletInformation.cs" />
      <Compile Include="Assets\Scripts\InputBehaviour.cs" />
+     <Compile Include="Assets\Scripts\PlayerBehaviour.cs" />
      <Compile Include="Assets\Scripts\WeaponBehaviour.cs" />
  <Reference Include="Unity.TextMeshPro.Editor">
  <HintPath>C:/Assignment_4/2d-shooter/Library/ScriptAssemblies/Unity.TextMeshPro.Editor.dll</HintPath>
