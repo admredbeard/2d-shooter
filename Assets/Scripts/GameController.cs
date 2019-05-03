@@ -17,6 +17,7 @@ public class GameController : MonoBehaviour
         return players[unitID].GetHealth();
     }
 
+    // Get a list of PlayerBehaviours of all players in the vision range.
     public List<PlayerBehaviour> VisiblePlayers(int unitID)
     {
         List<PlayerBehaviour> inRange = new List<PlayerBehaviour>();
@@ -33,9 +34,20 @@ public class GameController : MonoBehaviour
         return inRange;
     }
 
+    // Returns true if the first object hit is the intended enemy, else returns false
     public bool FreeLineOfSight(int unitID, int enemyID) {
-        Ray2D(players[unitID].transform.position, players[enemyID].transform.position);
-        
+        RaycastHit2D[] lineOfSightObjects = Physics2D.RaycastAll(players[unitID].transform.position, players[enemyID].transform.position - players[unitID].transform.position);
+
+        for (int i = 0; i < lineOfSightObjects.Length; i++) {
+            if (lineOfSightObjects[i].transform.name == players[unitID].transform.name) {
+                continue;
+            }
+            // If distance between an object hit by ray and the player is less than between player and intended target, the unit is not in a free line of sight.
+            else if(Vector2.Distance(lineOfSightObjects[i].transform.position, players[unitID].transform.position) < Vector2.Distance(players[unitID].transform.position, players[enemyID].transform.position) {
+                return false;   
+            }
+        }
+        return true;
     }
     
     
