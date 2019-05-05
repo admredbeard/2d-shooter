@@ -10,9 +10,26 @@ public class GameController : MonoBehaviour
     private int team1Score;
     private int team2Score;
     List<GameObject> players;
+    public GameObject rifleBullet;
+    public GameObject pistolBullet;
+    public GameObject shotgunBullet;
+    public float rifleDamage = 0f;
+    public float pistolDamage = 0f;
+    public float shotgunDamage = 0f;
+    public float rifleBulletSpeed = 100f;
+    public float pistolBulletSpeed = 70f;
+    public float shotgunBulletSpeed = 80f;
+    public float startRifleAmmunition = 0f;
+    public float startPistolAmmunition = 0f;
+    public float startShotgunAmmunition = 0f;
 
-
-
+    public float rifleMagazineSize = 0f;
+    public float pistolMagazineSize = 0f;
+    public float shotgunMagazineSize = 0f;
+    public float reloadTime = 1f;
+    public float pistolCD = 1f;
+    public float shotgunCD = 1f;
+    public float rifleCD = 0.1f;
     public float GetHp(int unitID)
     {
         return players[unitID].GetComponent<PlayerBehaviour>().GetHealth();
@@ -27,7 +44,8 @@ public class GameController : MonoBehaviour
         {
             if (player.GetComponent<PlayerBehaviour>().GetID() != unitID)
             {
-                if (Vector2.Distance(player.transform.position, players[unitID].transform.position) < visionRange){
+                if (Vector2.Distance(player.transform.position, players[unitID].transform.position) < visionRange)
+                {
                     inRange.Add(player);
                 }
             }
@@ -36,31 +54,37 @@ public class GameController : MonoBehaviour
     }
 
     // Returns true if the first object hit is the intended enemy, else returns false
-    public bool FreeLineOfSight(int unitID, int enemyID) {
+    public bool FreeLineOfSight(int unitID, int enemyID)
+    {
         RaycastHit2D[] lineOfSightObjects = Physics2D.RaycastAll(players[unitID].transform.position, players[enemyID].transform.position - players[unitID].transform.position);
 
-        for (int i = 0; i < lineOfSightObjects.Length; i++) {
-            if (lineOfSightObjects[i].transform.name == players[unitID].transform.name) {
+        for (int i = 0; i < lineOfSightObjects.Length; i++)
+        {
+            if (lineOfSightObjects[i].transform.name == players[unitID].transform.name)
+            {
                 continue;
             }
             // If distance between an object hit by ray and the player is less than between player and intended target, the unit is not in a free line of sight.
-            else if(Vector2.Distance(lineOfSightObjects[i].transform.position, players[unitID].transform.position) < Vector2.Distance(players[unitID].transform.position, players[enemyID].transform.position)) {
-                return false;   
+            else if (Vector2.Distance(lineOfSightObjects[i].transform.position, players[unitID].transform.position) < Vector2.Distance(players[unitID].transform.position, players[enemyID].transform.position))
+            {
+                return false;
             }
         }
         return true;
     }
-    
-    
+
+
 
     // Force unit to look in direction of the specified angle, counterclockwise clamps between 0 and 360. 
-    public void LookInDir(int unitID, float angle) {
+    public void LookInDir(int unitID, float angle)
+    {
         angle = Mathf.Clamp(angle, 0, 360);
         players[unitID].transform.Rotate(new Vector3(0, 0, 1), angle);
     }
 
     // Spawning teamSize units for each team and assigning unique UnitIDs aswell as Team with values -1 or 1.
-    private void SpawnTeams() {
+    private void SpawnTeams()
+    {
         for (int i = 0; i < 2 * teamSize; i++)
         {
             GameObject temp = GameObject.Instantiate(playerPrefab) as GameObject;

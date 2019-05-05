@@ -6,18 +6,19 @@ using UnityEngine;
 public class InputBehaviour : MonoBehaviour
 {
     float playerSpeed = 10; //speed player moves
-    public GameObject bullet;
-    private  Animator anim;
+    private Animator anim;
     private bool knifeActive = true;
     private bool handgunActive = false;
     private bool shotgunActive = false;
     private bool rifleActive = false;
+    PlayerBehaviour player;
     private WeaponBehaviour weaponBehaviour;
 
     private void Start()
     {
         anim = GetComponentInChildren<Animator>();
         weaponBehaviour = GetComponent<WeaponBehaviour>();
+        player = GameObject.Find("CoolDude").GetComponent<PlayerBehaviour>();
     }
     void Update()
     {
@@ -86,61 +87,88 @@ public class InputBehaviour : MonoBehaviour
             anim.SetTrigger("melee");
         }
     }
-    
+
     void CheckOtherInput()
     {
-        if (Input.GetKeyDown("1"))
+        if (!player.fired && !player.reloading && !player.weaponSwap)
         {
-            knifeActive = true;
-            handgunActive = false;
-            shotgunActive = false;
-            rifleActive = false;
-            anim.SetTrigger("knife");
-        }
-        if (Input.GetKeyDown("2"))
-        {
-            knifeActive = false;
-            handgunActive = true;
-            shotgunActive = false;
-            rifleActive = false;
-            anim.SetTrigger("handgun");
-        }
+            if (Input.GetKeyDown("1"))
+            {
+                knifeActive = true;
+                handgunActive = false;
+                shotgunActive = false;
+                rifleActive = false;
+                anim.SetTrigger("knife");
+                ChangeWeapon(1);
+            }
+            if (Input.GetKeyDown("2"))
+            {
+                knifeActive = false;
+                handgunActive = true;
+                shotgunActive = false;
+                rifleActive = false;
+                anim.SetTrigger("handgun");
+                ChangeWeapon(2);
+            }
 
-        if (Input.GetKeyDown("3"))
-        {
-            knifeActive = false;
-            handgunActive = false;
-            shotgunActive = true;
-            rifleActive = false;
-            anim.SetTrigger("rifle");
-        }
+            if (Input.GetKeyDown("3"))
+            {
+                knifeActive = false;
+                handgunActive = false;
+                shotgunActive = true;
+                rifleActive = false;
+                anim.SetTrigger("rifle");
+                ChangeWeapon(3);
+            }
 
-        if (Input.GetKeyDown("4"))
-        {
-            knifeActive = false;
-            handgunActive = false;
-            shotgunActive = false;
-            rifleActive = true;
-            anim.SetTrigger("shotgun");
+            if (Input.GetKeyDown("4"))
+            {
+                knifeActive = false;
+                handgunActive = false;
+                shotgunActive = false;
+                rifleActive = true;
+                anim.SetTrigger("shotgun");
+                ChangeWeapon(4);
+            }
         }
 
         if (Input.GetKeyDown("r"))
         {
-            
-            if(!knifeActive) //This if is needed to reload as soon as we switch weapons
+            if (!knifeActive) //This if is needed to reload as soon as we switch weapons
             {
-                //we want to check if we can reaload (ie, ammo not full)
                 anim.SetTrigger("reload");
+                StartCoroutine(player.ReloadWeapon());
             }
-            
+
         }
     }
 
-    void Fire(){
+    void ChangeWeapon(int weapon)
+    {
+        if (weapon == 1)
+        {
+            StartCoroutine(player.ChangeWeapon(Weapon.Knife));
+        }
+        else if (weapon == 2)
+        {
+            StartCoroutine(player.ChangeWeapon(Weapon.Pistol));
+        }
+        else if (weapon == 3)
+        {
+            StartCoroutine(player.ChangeWeapon(Weapon.Rifle));
+        }
+        else
+        {
+            StartCoroutine(player.ChangeWeapon(Weapon.Shotgun));
+        }
+    }
 
-        GameObject myBullet = Instantiate(bullet, transform.position + transform.up, Quaternion.identity);
-        BulletInformation bulletInfo = myBullet.GetComponent<BulletInformation> ();
-        bulletInfo.InitiateBullet(1, 100f, transform.up);
-        
+    void Fire()
+    {
+        StartCoroutine(player.FireWeapon());
+        //GameObject myBullet = Instantiate(bullet, transform.position + transform.up, Quaternion.identity);
+        //BulletInformation bulletInfo = myBullet.GetComponent<BulletInformation> ();
+        //bulletInfo.InitiateBullet(1, 100f, transform.up);
+
     }
 }

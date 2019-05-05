@@ -9,6 +9,13 @@ public class PlayerBehaviour : MonoBehaviour
     {
         health = maxHealth;
         gc = GameObject.Find("GameController").GetComponent<GameController>();
+        rifleAmmunition = gc.startRifleAmmunition - gc.rifleMagazineSize;
+        shotgunAmmunition = gc.startShotgunAmmunition - gc.shotgunMagazineSize;
+        pistolAmmunition = gc.startPistolAmmunition - gc.pistolMagazineSize;
+        rifleMagazineAmmunition = gc.rifleMagazineSize;
+        pistolMagazineAmmunition = gc.pistolMagazineSize;
+        shotgunMagazineAmmunition = gc.shotgunMagazineSize;
+        currentWeapon = Weapon.Knife;
     }
 
     public float visionRange = 10f;
@@ -17,20 +24,35 @@ public class PlayerBehaviour : MonoBehaviour
     public int id = -1; // Should be private, use getters, this is only for debug
     public int team = 0; // Should be private, use getters, this is only for debug
     GameController gc;
-
+    private float rifleAmmunition = 0f;
+    private float pistolAmmunition = 0f;
+    private float shotgunAmmunition = 0f;
+    private float rifleMagazineAmmunition = 0f;
+    private float pistolMagazineAmmunition = 0f;
+    private float shotgunMagazineAmmunition = 0f;
+    [System.NonSerialized]
+    public bool fired = false;
+    [System.NonSerialized]
+    public bool weaponSwap = false;
+    [System.NonSerialized]
+    public bool reloading = false;
+    private Weapon currentWeapon;
 
     // Gets the hp of a unit.
-    public float GetHealth() {
+    public float GetHealth()
+    {
         return health;
     }
 
     // Gets the id of a unit.
-    public int GetID() {
+    public int GetID()
+    {
         return id;
     }
 
     // Sets the id of a unit.
-    public void SetID(int id) {
+    public void SetID(int id)
+    {
         this.id = id;
     }
 
@@ -51,7 +73,8 @@ public class PlayerBehaviour : MonoBehaviour
     {
         health -= damage;
 
-        if(health < 0f){
+        if (health < 0f)
+        {
 
             Destroy(gameObject, 2f);
             Debug.Log("You Died");
@@ -59,4 +82,180 @@ public class PlayerBehaviour : MonoBehaviour
 
         }
     }
+
+    public Weapon GetWeapon()
+    {
+        return currentWeapon;
+    }
+
+    public string GetCurrentAmmo()
+    {
+        if (currentWeapon == Weapon.Rifle)
+        {
+            return rifleMagazineAmmunition + " / " + rifleAmmunition;
+        }
+        else if (currentWeapon == Weapon.Pistol)
+        {
+            return pistolMagazineAmmunition + " / " + pistolAmmunition;
+        }
+        else if (currentWeapon == Weapon.Shotgun)
+        {
+            return shotgunMagazineAmmunition + " / " + shotgunAmmunition;
+        }
+        else
+        {
+            return "-";
+        }
+    }
+
+    public IEnumerator ChangeWeapon(Weapon newWeapon)
+    {
+        if (!reloading && !weaponSwap)
+        {
+            currentWeapon = newWeapon;
+            weaponSwap = true;
+            yield return new WaitForSeconds(gc.reloadTime);
+            weaponSwap = false;
+        }
+        else
+        {
+            Debug.Log("Can't change weapon while reloading or swapping weapon");
+        }
+    }
+
+    public IEnumerator ReloadWeapon()
+    {
+        if (currentWeapon != Weapon.Knife)
+            yield return new WaitForSeconds(gc.reloadTime);
+
+        if (!weaponSwap && !reloading)
+        {
+            if (currentWeapon == Weapon.Rifle)
+            {
+                if (rifleAmmunition > gc.rifleMagazineSize)
+                {
+                    rifleMagazineAmmunition = gc.rifleMagazineSize;
+                    rifleAmmunition -= rifleMagazineAmmunition;
+                }
+                else if (rifleAmmunition > 0)
+                {
+                    rifleMagazineAmmunition = rifleAmmunition;
+                    rifleAmmunition -= rifleMagazineAmmunition;
+                }
+                else
+                {
+                    Debug.Log("Out of rifle ammunition");
+                }
+            }
+            else if (currentWeapon == Weapon.Pistol)
+            {
+                if (pistolAmmunition > gc.pistolMagazineSize)
+                {
+                    pistolMagazineAmmunition = gc.pistolMagazineSize;
+                    pistolAmmunition -= pistolMagazineAmmunition;
+                }
+                else if (pistolAmmunition > 0)
+                {
+                    pistolMagazineAmmunition = pistolAmmunition;
+                    pistolAmmunition -= pistolMagazineAmmunition;
+                }
+                else
+                {
+                    Debug.Log("Out of pistol ammunition");
+                }
+            }
+            else if (currentWeapon == Weapon.Shotgun)
+            {
+                if (shotgunAmmunition > gc.shotgunMagazineSize)
+                {
+                    shotgunMagazineAmmunition = gc.shotgunMagazineSize;
+                    shotgunAmmunition -= shotgunMagazineAmmunition;
+                }
+                else if (shotgunAmmunition > 0)
+                {
+                    shotgunMagazineAmmunition = shotgunAmmunition;
+                    shotgunAmmunition -= shotgunMagazineAmmunition;
+                }
+                else
+                {
+                    Debug.Log("Out of shotgun ammunition");
+                }
+            }
+            else
+            {
+                Debug.Log("Why you trying to reload knife???");
+            }
+        }
+        else
+        {
+            Debug.Log("Can't reload while swapping weapons or reloading");
+        }
+    }
+
+    public IEnumerator FireWeapon()
+    {
+        if (currentWeapon == Weapon.Rifle && !fired && !weaponSwap)
+        {
+            if (rifleMagazineAmmunition > 0)
+            {
+                fired = true;
+                GameObject myBullet = Instantiate(gc.rifleBullet, transform.position + transform.up, Quaternion.identity);
+                BulletInformation bulletInfo = myBullet.GetComponent<BulletInformation>();
+                bulletInfo.InitiateBullet(gc.rifleDamage, gc.rifleBulletSpeed, transform.up);
+                rifleMagazineAmmunition -= 1;
+                yield return new WaitForSeconds(gc.rifleCD);
+                fired = false;
+            }
+            else
+            {
+                print("No more rifle ammunition in magazine");
+            }
+        }
+        else if (currentWeapon == Weapon.Pistol && !fired && !weaponSwap && pistolMagazineAmmunition > 0)
+        {
+            if (pistolMagazineAmmunition > 0)
+            {
+                fired = true;
+                GameObject myBullet = Instantiate(gc.pistolBullet, transform.position + transform.up, Quaternion.identity);
+                BulletInformation bulletInfo = myBullet.GetComponent<BulletInformation>();
+                bulletInfo.InitiateBullet(gc.pistolDamage, gc.pistolBulletSpeed, transform.up);
+                pistolMagazineAmmunition -= 1;
+                yield return new WaitForSeconds(gc.pistolCD);
+                fired = false;
+            }
+            else
+            {
+                print("No more pistol ammunition in magazine");
+            }
+        }
+        else if (currentWeapon == Weapon.Shotgun && !fired && !weaponSwap)
+        {
+            if (shotgunMagazineAmmunition > 0)
+            {
+                fired = true;
+                GameObject myBullet = Instantiate(gc.shotgunBullet, transform.position + transform.up, Quaternion.identity);
+                BulletInformation bulletInfo = myBullet.GetComponent<BulletInformation>();
+                bulletInfo.InitiateBullet(gc.shotgunDamage, gc.shotgunBulletSpeed, transform.up);
+                shotgunMagazineAmmunition -= 1;
+                yield return new WaitForSeconds(gc.shotgunCD);
+                fired = false;
+            }
+            else
+            {
+                print("No more shotgun ammuniton in magazine");
+            }
+        }
+        else
+        {
+            print(currentWeapon.ToString() + " bullet cooldown");
+        }
+    }
+}
+
+public enum Weapon
+{
+    Knife,
+    Pistol,
+    Rifle,
+    Shotgun
 }
