@@ -1,0 +1,62 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &5004867175062782642
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5004867175062782284}
+  - component: {fileID: 5004867175062782285}
+  m_Layer: 0
+  m_Name: MapController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5004867175062782284
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5004867175062782642}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0.1}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5004867175062782285
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5004867175062782642}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 499074e6af504754c926df0e006c5b72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  groundClutter:
+  - {fileID: 6587609286278029305, guid: 23f858cc1fc856d47a077e961f5abb9c, type: 3}
+  - {fileID: 156269646625146352, guid: b2e2ca698ea1a174fad0938e0239c845, type: 3}
+  - {fileID: 4196350034615534390, guid: 40855c58e0153b846befa41841cfc57a, type: 3}
+  - {fileID: 5721988336301085805, guid: feb29faeec071cd48a194acd6896bc96, type: 3}
+  - {fileID: 8037170404462189967, guid: dbedf95bbbfcca841af024e00d57e4f7, type: 3}
+  - {fileID: 2516247103236232772, guid: d7265012d1cd99742a8bdf410d2861d0, type: 3}
+  - {fileID: 391038070673243299, guid: 16ee045cd81f5674392b071d32898266, type: 3}
+  - {fileID: 3820529056416857673, guid: 6ba07516e861d7c4a8b1c5e12b83be4c, type: 3}
+  - {fileID: 6533660364936631070, guid: 8e1c57639ed29e14db2d8a7ff9f60dea, type: 3}
+  wall: {fileID: 6617418160702670207, guid: 9fc7d619b889b9447bde3c261c81c80d, type: 3}
+  stone: {fileID: 4702860374895825186, guid: a6b9dc8b07c6ae64a969bb7668624604, type: 3}
+  grass: {fileID: 402409891786673231, guid: 6cc4b43ace29b9c43a7278582b6ec30f, type: 3}
+  clutterPercentage: 0.3
+  obstaclesPercentage: 0.1
+  mapMinSize: 25
+  mapMaxSize: 50

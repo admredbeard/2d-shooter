@@ -110,9 +110,9 @@ GameObject:
   - component: {fileID: 9124713105886943217}
   - component: {fileID: 1209651595087677407}
   - component: {fileID: 1011742241944957338}
-  - component: {fileID: 4299348790726112039}
   - component: {fileID: 7033084689233758923}
   - component: {fileID: 8651696168665407229}
+  - component: {fileID: 885329942}
   m_Layer: 0
   m_Name: CoolDude
   m_TagString: Player
@@ -127,7 +127,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4212678750477882354}
-  m_LocalRotation: {x: -0, y: -0, z: -0.83432037, w: 0.5512799}
+  m_LocalRotation: {x: 0, y: 0, z: -0.8343191, w: 0.55128187}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -160,32 +160,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84ee25ab30db17b4e9faba286d55ee82, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!61 &4299348790726112039
-BoxCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4212678750477882354}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0, y: 0}
-    oldSize: {x: 0, y: 0}
-    newSize: {x: 0, y: 0}
-    adaptiveTilingThreshold: 0
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
-  serializedVersion: 2
-  m_Size: {x: 1.5, y: 1.5}
-  m_EdgeRadius: 0
 --- !u!114 &7033084689233758923
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -223,3 +197,19 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!58 &885329942
+CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4212678750477882354}
+  m_Enabled: 1
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_UsedByComposite: 0
+  m_Offset: {x: -0.45611656, y: 0.22263218}
+  serializedVersion: 2
+  m_Radius: 1.2980494
