@@ -4,16 +4,18 @@ using UnityEngine;
 
 public class PlayerBehaviour : MonoBehaviour
 {
+
     void Start()
     {
         health = maxHealth;
-        // gc = GetCompotent<GameController>(); do something like this.
+        gc = GameObject.Find("GameController").GetComponent<GameController>();
     }
 
     public float visionRange = 10f;
     private float health = 0f;
     public float maxHealth = 100f;
-    private int id = -1;
+    public int id = -1; // Should be private, use getters, this is only for debug
+    public int team = 0; // Should be private, use getters, this is only for debug
     GameController gc;
 
 
@@ -30,6 +32,18 @@ public class PlayerBehaviour : MonoBehaviour
     // Sets the id of a unit.
     public void SetID(int id) {
         this.id = id;
+    }
+
+    // Gets the team of a unit.
+    public int GetTeam()
+    {
+        return team;
+    }
+
+    // Sets the team of a unit.
+    public void SetTeam(int team)
+    {
+        this.team = team;
     }
 
     // Applies damage.

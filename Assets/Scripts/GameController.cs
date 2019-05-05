@@ -6,25 +6,26 @@ public class GameController : MonoBehaviour
 {
     public int teamCount;
     public int teamSize;
+    public GameObject playerPrefab;
     private int team1Score;
     private int team2Score;
-    List<PlayerBehaviour> players;
+    List<GameObject> players;
 
 
 
     public float GetHp(int unitID)
     {
-        return players[unitID].GetHealth();
+        return players[unitID].GetComponent<PlayerBehaviour>().GetHealth();
     }
 
     // Get a list of PlayerBehaviours of all players in the vision range.
-    public List<PlayerBehaviour> VisiblePlayers(int unitID)
+    public List<GameObject> VisiblePlayers(int unitID)
     {
-        List<PlayerBehaviour> inRange = new List<PlayerBehaviour>();
-        float visionRange = players[unitID].visionRange;
-        foreach (PlayerBehaviour player in players)
+        List<GameObject> inRange = new List<GameObject>();
+        float visionRange = players[unitID].GetComponent<PlayerBehaviour>().visionRange;
+        foreach (GameObject player in players)
         {
-            if (player.GetID() != unitID)
+            if (player.GetComponent<PlayerBehaviour>().GetID() != unitID)
             {
                 if (Vector2.Distance(player.transform.position, players[unitID].transform.position) < visionRange){
                     inRange.Add(player);
@@ -43,7 +44,7 @@ public class GameController : MonoBehaviour
                 continue;
             }
             // If distance between an object hit by ray and the player is less than between player and intended target, the unit is not in a free line of sight.
-            else if(Vector2.Distance(lineOfSightObjects[i].transform.position, players[unitID].transform.position) < Vector2.Distance(players[unitID].transform.position, players[enemyID].transform.position) {
+            else if(Vector2.Distance(lineOfSightObjects[i].transform.position, players[unitID].transform.position) < Vector2.Distance(players[unitID].transform.position, players[enemyID].transform.position)) {
                 return false;   
             }
         }
@@ -58,9 +59,30 @@ public class GameController : MonoBehaviour
         players[unitID].transform.Rotate(new Vector3(0, 0, 1), angle);
     }
 
+    // Spawning teamSize units for each team and assigning unique UnitIDs aswell as Team with values -1 or 1.
+    private void SpawnTeams() {
+        for (int i = 0; i < 2 * teamSize; i++)
+        {
+            GameObject temp = GameObject.Instantiate(playerPrefab) as GameObject;
+            PlayerBehaviour tempBehaviour = temp.GetComponent<PlayerBehaviour>();
+            tempBehaviour.SetID(i);
+            if (i < teamSize)
+            {
+                tempBehaviour.SetTeam(-1);
+            }
+            else
+            {
+                tempBehaviour.SetTeam(1);
+            }
+
+        }
+    }
+
     // Start is called before the first frame update
     void Start()
     {
+        SpawnTeams();
+
 
     }
 
