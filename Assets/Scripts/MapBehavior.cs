@@ -79,9 +79,9 @@ public class MapBehavior : MonoBehaviour
 
     void GenerateObstacles()
     {
-        for (int x = 0; x < mapSize; x++)
+        for (int x = 1; x < mapSize-1; x++)
         {
-            for (int y = 0; y < mapSize; y++)
+            for (int y = 1; y < mapSize-1; y++)
             {
                 if (Random.Range(0, 100) < obstaclesPercentage * 100)
                 {

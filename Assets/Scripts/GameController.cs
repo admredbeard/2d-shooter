@@ -11,8 +11,50 @@ public class GameController : MonoBehaviour
     private int team2Score;
     List<GameObject> players;
 
+    public GameObject rifleBullet;
+    public GameObject pistolBullet;
+    public GameObject shotgunBullet;
+    public float rifleDamage = 0f;
+    public float pistolDamage = 0f;
+    public float shotgunDamage = 0f;
+    public float rifleBulletSpeed = 100f;
+    public float pistolBulletSpeed = 70f;
+    public float shotgunBulletSpeed = 80f;
+    public float startRifleAmmunition = 0f;
+    public float startPistolAmmunition = 0f;
+    public float startShotgunAmmunition = 0f;
 
+    public float rifleMagazineSize = 0f;
+    public float pistolMagazineSize = 0f;
+    public float shotgunMagazineSize = 0f;
+    public float reloadTime = 1f;
+    public float pistolCD = 1f;
+    public float shotgunCD = 1f;
+    public float rifleCD = 0.1f;
+    
+    
+    public GameObject zoneObj;
+    private MapBehavior map;
+    
+    public void GiveScoreToTeamOne(int score)
+    {
+        team1Score = team1Score + score;
+    }
 
+    public void GiveScoreToTeamTwo(int score)
+    {
+        team2Score = team2Score + score;
+    }
+
+    public int GetTeamOneScore()
+    {
+        return team1Score;
+    }
+
+    public int GetTeamTwoScore()
+    {
+        return team2Score;
+    
 
     public float GetHp(int unitID)
     {
@@ -94,6 +136,8 @@ public class GameController : MonoBehaviour
     void Start()
     {
         SpawnTeams();
+        map = GameObject.Find("MapController").GetComponent<MapBehavior>();
+        StartCoroutine("ZoneHandler");
 
     }
 
@@ -102,6 +146,23 @@ public class GameController : MonoBehaviour
     {
         for (int i = 0; i < players.Count; i++) {
             if (GetHp(i) < 0) Respawn(i);
+        }
+    }
+
+    private Vector3 GetRandomZonePosition(){
+        int mapSize = map.GetMapSize();
+        float worldSize = mapSize*2.5f;
+        float x_cord = Random.Range(5f,worldSize-5f);
+        float y_cord = Random.Range(5f,worldSize-5f);
+        return new Vector3(x_cord, y_cord, -2);
+    }
+
+    IEnumerator ZoneHandler(){
+        yield return new WaitForSeconds(10f);
+        while(true){
+            GameObject zone = Instantiate(zoneObj, GetRandomZonePosition(), Quaternion.identity);
+            yield return new WaitForSeconds(30f);
+            Destroy(zone);
         }
     }
 }
