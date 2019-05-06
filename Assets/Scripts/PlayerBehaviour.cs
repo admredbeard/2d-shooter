@@ -7,19 +7,13 @@ public class PlayerBehaviour : MonoBehaviour
 
     void Start()
     {
-        health = maxHealth;
-        wc = GameObject.Find("WeaponBehaviour").GetComponent<WeaponBehaviour>();
-        rifleAmmunition = wc.startRifleAmmunition - wc.rifleMagazineSize;
-        shotgunAmmunition = wc.startShotgunAmmunition - wc.shotgunMagazineSize;
-        pistolAmmunition = wc.startPistolAmmunition - wc.pistolMagazineSize;
-        rifleMagazineAmmunition = wc.rifleMagazineSize;
-        pistolMagazineAmmunition = wc.pistolMagazineSize;
-        shotgunMagazineAmmunition = wc.shotgunMagazineSize;
-        currentWeapon = Weapon.Knife;
+       
+        wc = GetComponent<WeaponBehaviour>();
+        ResetStats();
     }
 
     public float visionRange = 10f;
-    private float health = 0f;
+    public float health = 0f;
     public float maxHealth = 100f;
     public int id = -1; // Should be private, use getters, this is only for debug
     public int team = 0; // Should be private, use getters, this is only for debug
@@ -73,6 +67,17 @@ public class PlayerBehaviour : MonoBehaviour
     public void TakeDamage(float damage)
     {
         health -= damage;
+    }
+
+    public void ResetStats() {
+        health = maxHealth;
+        rifleAmmunition = wc.startRifleAmmunition - wc.rifleMagazineSize;
+        shotgunAmmunition = wc.startShotgunAmmunition - wc.shotgunMagazineSize;
+        pistolAmmunition = wc.startPistolAmmunition - wc.pistolMagazineSize;
+        rifleMagazineAmmunition = wc.rifleMagazineSize;
+        pistolMagazineAmmunition = wc.pistolMagazineSize;
+        shotgunMagazineAmmunition = wc.shotgunMagazineSize;
+        currentWeapon = Weapon.Knife;
     }
 
     public Weapon GetWeapon()

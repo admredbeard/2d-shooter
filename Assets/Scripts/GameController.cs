@@ -10,12 +10,13 @@ public class GameController : MonoBehaviour
     private int team1Score;
     private int team2Score;
     List<GameObject> players;
-
+    MapBehavior mb;
 
 
 
     public float GetHp(int unitID)
     {
+
         return players[unitID].GetComponent<PlayerBehaviour>().GetHealth();
     }
 
@@ -69,12 +70,16 @@ public class GameController : MonoBehaviour
     // Spawning teamSize units for each team and assigning unique UnitIDs aswell as Team with values -1 or 1.
     private void SpawnTeams()
     {
+        Debug.Log(players.Count);
+        Debug.Log(players.Count);
         for (int i = 0; i < 2 * teamSize; i++)
         {
-            GameObject temp = GameObject.Instantiate(playerPrefab) as GameObject;
+            GameObject temp = Instantiate(playerPrefab) as GameObject;
             temp.name = "CoolDude";
             PlayerBehaviour tempBehaviour = temp.GetComponent<PlayerBehaviour>();
             tempBehaviour.SetID(i);
+
+            players.Add(temp);
             if (i < teamSize)
             {
                 tempBehaviour.SetTeam(-1);
@@ -83,16 +88,49 @@ public class GameController : MonoBehaviour
             {
                 tempBehaviour.SetTeam(1);
             }
-
+            //Respawn(i);
         }
-    }
-    private void Respawn(int unitID) {
 
+    }
+
+    private void Respawn(int unitID) {
+        GameObject respawnUnit = players[unitID];
+
+        int tempXIdx = 0;
+        int tempYIdx = 0;
+        for (int i = 0; i < players.Count; i++) { 
+            if (respawnUnit.GetComponent<PlayerBehaviour>().team != players[i].GetComponent<PlayerBehaviour>().team) {
+                tempXIdx += (int)mb.GetGridPosFromWorldPos(players[i].transform.position).x;
+                tempYIdx += (int)mb.GetGridPosFromWorldPos(players[i].transform.position).y;
+            }
+        }
+        tempXIdx = tempXIdx / teamSize;
+        tempYIdx = tempYIdx / teamSize;
+
+        Vector2 meanPos = mb.GetWorldPosFromGridPos(tempXIdx, tempYIdx);
+        bool [,] traverability = mb.GetTraversable();
+        Vector2[] corners = { mb.GetWorldPosFromGridPos(0, 0), mb.GetWorldPosFromGridPos(traverability.GetLength(0) - 1, 0),
+                            mb.GetWorldPosFromGridPos(traverability.GetLength(0) - 1, 0), mb.GetWorldPosFromGridPos(traverability.GetLength(0) - 1, traverability.GetLength(0) - 1) };
+        float tempDist = 0;
+        float maxdist = 0;
+        Vector2 spawnPos = meanPos;
+        for (int i = 0; i < corners.Length; i++) {
+            tempDist = Vector2.Distance(meanPos, corners[i]);
+            if (tempDist > maxdist) {
+                maxdist = tempDist;
+                spawnPos = corners[i];
+            }
+        }
+
+        respawnUnit.transform.position = spawnPos;
+        respawnUnit.GetComponent<PlayerBehaviour>().ResetStats();
     }
 
     // Start is called before the first frame update
     void Start()
     {
+        players = new List<GameObject>();
+        mb = GameObject.Find("MapController").GetComponent<MapBehavior>();
         SpawnTeams();
 
     }
