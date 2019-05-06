@@ -8,7 +8,7 @@ public class PlayerBehaviour : MonoBehaviour
     void Start()
     {
         health = maxHealth;
-        wc = GameObject.Find("WeaponBehaviour").GetComponent<WeaponBehaviour>();
+        wc = GetComponent<WeaponBehaviour>();
         rifleAmmunition = wc.startRifleAmmunition - wc.rifleMagazineSize;
         shotgunAmmunition = wc.startShotgunAmmunition - wc.shotgunMagazineSize;
         pistolAmmunition = wc.startPistolAmmunition - wc.pistolMagazineSize;
