@@ -17,30 +17,6 @@ public class BulletInformation : MonoBehaviour
     }
 
     int shotgunBulletAmount = 6;
-    public void InitiateShotgunBullets(float bulletDamage, float speed, Vector3 direction, GameObject attacker)
-    {
-        Vector3[] straightBullets = RandomDirections(direction, Vector3.zero, shotgunBulletAmount / 3);
-        Vector3[] leftBullets = RandomDirections(direction, attacker.transform.right / 5, shotgunBulletAmount / 3);
-        Vector3[] rightBullets = RandomDirections(direction, -attacker.transform.right / 5, shotgunBulletAmount / 3);
-
-        for (int i = 0; i < shotgunBulletAmount / 3; i++)
-        {
-
-        }
-    }
-
-    Vector3[] RandomDirections(Vector3 direction, Vector3 offset, int amount)
-    {
-        Vector3[] bulletDirs = new Vector3[amount];
-        for (int i = 0; i < amount; i++)
-        {
-            float x = Random.Range(offset.x - 0.2f, offset.x + 0.2f);
-            float y = Random.Range(offset.y - 0.2f, offset.y + 0.2f);
-            bulletDirs[i] = direction + new Vector3(x, y, 0f);
-        }
-        return bulletDirs;
-    }
-
     private float damage = 0f;
     public float Damage
     {
