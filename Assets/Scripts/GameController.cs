@@ -149,9 +149,7 @@ public class GameController : MonoBehaviour
         players = new List<GameObject>();
         mb = GameObject.Find("MapController").GetComponent<MapBehavior>();
         SpawnTeams();
-        map = GameObject.Find("MapController").GetComponent<MapBehavior>();
         StartCoroutine("ZoneHandler");
-
     }
 
     // Update is called once per frame
@@ -161,7 +159,7 @@ public class GameController : MonoBehaviour
     }
 
     private Vector3 GetRandomZonePosition(){
-        int mapSize = map.GetMapSize();
+        int mapSize = mb.GetMapSize();
         float worldSize = mapSize*2.5f;
         float x_cord = Random.Range(5f,worldSize-5f);
         float y_cord = Random.Range(5f,worldSize-5f);
