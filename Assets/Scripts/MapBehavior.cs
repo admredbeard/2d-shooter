@@ -27,9 +27,9 @@ public class MapBehavior : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        mapSize = Random.Range(mapMinSize, mapMaxSize);
         obstaclePositions = new List<Vector2>();
         InitEditor();
-        mapSize = Random.Range(mapMinSize, mapMaxSize);
         traversable = new bool[mapSize, mapSize];
         GenerateMap();
         GenerateWalls();
@@ -103,9 +103,34 @@ public class MapBehavior : MonoBehaviour
         return mapSize;
     }
 
-    public Vector2 GetGridPosFromWorldPos(Vector2 worldPos)
+    public Vector2 GetMapMiddle()
+    {
+        return new Vector2(mapSize * 2.5f / 2, mapSize * 2.5f / 2);
+    }
+
+    public Vector2 GetGridPosFromWorldPos(Vector3 worldPos)
     {
         return new Vector2(Mathf.Round(worldPos.x / 2.5f), Mathf.Round(worldPos.y / 2.5f));
+    }
+
+    public Vector2 GetWorldPosFromGridPos(int x, int y)
+    {
+        return new Vector2(Mathf.Round(x * 2.5f), Mathf.Round(y * 2.5f));
+    }
+
+    public bool IsGridPosTraversable(int x, int y)
+    {
+        return traversable[x, y];
+    }
+
+    public bool IsWorldPosTraversable(Vector3 worldPos)
+    {
+        return traversable[(int)Mathf.Round(worldPos.x / 2.5f), (int)Mathf.Round(worldPos.y / 2.5f)];
+    }
+
+    public bool[,] GetTraversable()
+    {
+        return traversable;
     }
 
 }

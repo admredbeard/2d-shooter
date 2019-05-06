@@ -30,10 +30,30 @@ public class GameController : MonoBehaviour
     public float pistolCD = 1f;
     public float shotgunCD = 1f;
     public float rifleCD = 0.1f;
-
+    
+    
     public GameObject zoneObj;
     private MapBehavior map;
+    
+    public void GiveScoreToTeamOne(int score)
+    {
+        team1Score = team1Score + score;
+    }
 
+    public void GiveScoreToTeamTwo(int score)
+    {
+        team2Score = team2Score + score;
+    }
+
+    public int GetTeamOneScore()
+    {
+        return team1Score;
+    }
+
+    public int GetTeamTwoScore()
+    {
+        return team2Score;
+    }
 
     public float GetHp(int unitID)
     {
