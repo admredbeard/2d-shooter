@@ -14,23 +14,23 @@ public class MapBehavior : MonoBehaviour
     public int mapMinSize;
     public int mapMaxSize;
 
-    
     int mapSize;
     GameObject Map;
     GameObject Ground;
     GameObject Obstacles;
     GameObject Walls;
+    
+    bool[,] traversable;
+    List<Vector2> obstaclePositions;
 
-
-    [System.NonSerialized]
-    public bool[,] traversable;
 
     // Start is called before the first frame update
     void Start()
     {
-        InitEditor();
-        traversable = new bool[mapSize,mapSize];
         mapSize = Random.Range(mapMinSize, mapMaxSize);
+        obstaclePositions = new List<Vector2>();
+        InitEditor();
+        traversable = new bool[mapSize, mapSize];
         GenerateMap();
         GenerateWalls();
         GenerateObstacles();
@@ -70,10 +70,10 @@ public class MapBehavior : MonoBehaviour
     {
         for (int i = -1; i < mapSize+1; i++)
         {
-            Instantiate(wall, new Vector3(i * 2.5f, -1 * 2.5f, 0), wall.transform.rotation, Walls.transform);
-            Instantiate(wall, new Vector3(-1 * 2.5f, i * 2.5f, 0), wall.transform.rotation, Walls.transform);
-            Instantiate(wall, new Vector3(i * 2.5f, mapSize * 2.5f, 0), wall.transform.rotation, Walls.transform);
-            Instantiate(wall, new Vector3(mapSize * 2.5f, i * 2.5f, 0), wall.transform.rotation, Walls.transform);
+            Instantiate(wall, new Vector2(i * 2.5f, -1 * 2.5f), wall.transform.rotation, Walls.transform);
+            Instantiate(wall, new Vector2(-1 * 2.5f, i * 2.5f), wall.transform.rotation, Walls.transform);
+            Instantiate(wall, new Vector2(i * 2.5f, mapSize * 2.5f), wall.transform.rotation, Walls.transform);
+            Instantiate(wall, new Vector2(mapSize * 2.5f, i * 2.5f), wall.transform.rotation, Walls.transform);
         }
     }
 
@@ -86,9 +86,51 @@ public class MapBehavior : MonoBehaviour
                 if (Random.Range(0, 100) < obstaclesPercentage * 100)
                 {
                     Instantiate(stone, new Vector3(x * 2.5f, y * 2.5f, 0), stone.transform.rotation, Obstacles.transform);
+                    traversable[x, y] = false;
+                }
+                else
+                {
+                    traversable[x, y] = true;
                 }
             }
         }
+    }
+
+    // Help functions for the API calls
+
+    public int GetMapSize()
+    {
+        return mapSize;
+    }
+
+    public Vector2 GetMapMiddle()
+    {
+        return new Vector2(mapSize * 2.5f / 2, mapSize * 2.5f / 2);
+    }
+
+    public Vector2 GetGridPosFromWorldPos(Vector3 worldPos)
+    {
+        return new Vector2(Mathf.Round(worldPos.x / 2.5f), Mathf.Round(worldPos.y / 2.5f));
+    }
+
+    public Vector2 GetWorldPosFromGridPos(int x, int y)
+    {
+        return new Vector2(Mathf.Round(x * 2.5f), Mathf.Round(y * 2.5f));
+    }
+
+    public bool IsGridPosTraversable(int x, int y)
+    {
+        return traversable[x, y];
+    }
+
+    public bool IsWorldPosTraversable(Vector3 worldPos)
+    {
+        return traversable[(int)Mathf.Round(worldPos.x / 2.5f), (int)Mathf.Round(worldPos.y / 2.5f)];
+    }
+
+    public bool[,] GetTraversable()
+    {
+        return traversable;
     }
 
 }
