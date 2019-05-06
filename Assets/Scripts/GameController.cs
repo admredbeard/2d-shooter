@@ -10,6 +10,7 @@ public class GameController : MonoBehaviour
     private int team1Score;
     private int team2Score;
     List<GameObject> players;
+
     public GameObject rifleBullet;
     public GameObject pistolBullet;
     public GameObject shotgunBullet;
@@ -53,7 +54,7 @@ public class GameController : MonoBehaviour
     public int GetTeamTwoScore()
     {
         return team2Score;
-    }
+    
 
     public float GetHp(int unitID)
     {
@@ -113,6 +114,7 @@ public class GameController : MonoBehaviour
         for (int i = 0; i < 2 * teamSize; i++)
         {
             GameObject temp = GameObject.Instantiate(playerPrefab) as GameObject;
+            temp.name = "CoolDude";
             PlayerBehaviour tempBehaviour = temp.GetComponent<PlayerBehaviour>();
             tempBehaviour.SetID(i);
             if (i < teamSize)
@@ -126,6 +128,9 @@ public class GameController : MonoBehaviour
 
         }
     }
+    private void Respawn(int unitID) {
+
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -133,12 +138,15 @@ public class GameController : MonoBehaviour
         SpawnTeams();
         map = GameObject.Find("MapController").GetComponent<MapBehavior>();
         StartCoroutine("ZoneHandler");
+
     }
 
     // Update is called once per frame
     void Update()
     {
-
+        for (int i = 0; i < players.Count; i++) {
+            if (GetHp(i) < 0) Respawn(i);
+        }
     }
 
     private Vector3 GetRandomZonePosition(){
