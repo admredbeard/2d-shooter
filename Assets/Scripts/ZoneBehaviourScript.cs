@@ -8,17 +8,30 @@ public class ZoneBehaviourScript : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        MapBehavior map = GameObject.Find("MapController").GetComponent<MapBehavior>();
+        int size = map.GetMapSize();
+        Vector3 zoneScale = new Vector3(size/5, size/5, 1);
         zoneImage = GetComponent<SpriteRenderer>();
-        transform.localScale = new Vector3(5,5,1);
+        transform.localScale = zoneScale;
         StartCoroutine("Fade");
+        StartCoroutine("IsUnitInCircle");
     }
+    IEnumerator IsUnitInCircle(){
+        while(true){
+            Collider2D[] unitsWithinRange = Physics2D.OverlapCircleAll(transform.position, transform.localScale.x*1.5f, ~(1<<8));
+            foreach(Collider2D unit in unitsWithinRange){
+                //change to two different tags depending on team and give score accordingly
+                if (unit.tag == "Player"){
+                    Debug.Log("Player in range! gief score");
+                }else if(unit.tag == "Player"){
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+                }                                           
+            }
+            yield return new WaitForSeconds(5);
+        }
     }
-    IEnumerator Fade(){
+    IEnumerator Fade()
+    {
         float lerpAmount = 0;
         bool fadeOut = true;
 		while (true) {
