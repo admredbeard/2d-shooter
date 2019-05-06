@@ -182,7 +182,7 @@ PrefabInstance:
     - target: {fileID: 5004867175062782285, guid: f6753003c7ef63c4e943964e2147ca4a,
         type: 3}
       propertyPath: clutterPercentage
-      value: 0
+      value: 0.05
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f6753003c7ef63c4e943964e2147ca4a, type: 3}
@@ -292,28 +292,6 @@ MonoBehaviour:
   teamCount: 0
   teamSize: 0
   playerPrefab: {fileID: 0}
-  rifleBullet: {fileID: 3086015439523230666, guid: 82cf83446257dc140a24066e1f9c0cae,
-    type: 3}
-  pistolBullet: {fileID: 7665035862566708980, guid: f963e7395aa1f804f96f1ed172721ac9,
-    type: 3}
-  shotgunBullet: {fileID: 4409441947048094875, guid: 43308319752b3234280da76aff2c1c89,
-    type: 3}
-  rifleDamage: 2
-  pistolDamage: 3
-  shotgunDamage: 2
-  rifleBulletSpeed: 100
-  pistolBulletSpeed: 70
-  shotgunBulletSpeed: 80
-  startRifleAmmunition: 30
-  startPistolAmmunition: 15
-  startShotgunAmmunition: 8
-  rifleMagazineSize: 10
-  pistolMagazineSize: 5
-  shotgunMagazineSize: 2
-  reloadTime: 1
-  pistolCD: 0.2
-  shotgunCD: 0.5
-  rifleCD: 0.1
   zoneObj: {fileID: 4402636317333888567, guid: a01c20ca82680ab428a5d66469105d04, type: 3}
 --- !u!4 &445286380
 Transform:
@@ -526,20 +504,50 @@ PrefabInstance:
         type: 3}
       propertyPath: rifleBullet
       value: 
-      objectReference: {fileID: 3086015439523230666, guid: 82cf83446257dc140a24066e1f9c0cae,
+      objectReference: {fileID: 2851899142666349329, guid: 6189dd1046d905b47a225b7bf57b8c6c,
         type: 3}
     - target: {fileID: 1011742241944957338, guid: 353879bfe118df3438a766dac55523ab,
         type: 3}
       propertyPath: pistolBullet
       value: 
-      objectReference: {fileID: 7665035862566708980, guid: f963e7395aa1f804f96f1ed172721ac9,
+      objectReference: {fileID: 2851899142666349329, guid: 6189dd1046d905b47a225b7bf57b8c6c,
         type: 3}
     - target: {fileID: 1011742241944957338, guid: 353879bfe118df3438a766dac55523ab,
         type: 3}
       propertyPath: shotgunBullet
       value: 
-      objectReference: {fileID: 4409441947048094875, guid: 43308319752b3234280da76aff2c1c89,
+      objectReference: {fileID: 2851899142666349329, guid: 6189dd1046d905b47a225b7bf57b8c6c,
         type: 3}
+    - target: {fileID: 1011742241944957338, guid: 353879bfe118df3438a766dac55523ab,
+        type: 3}
+      propertyPath: startRifleAmmunition
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 1011742241944957338, guid: 353879bfe118df3438a766dac55523ab,
+        type: 3}
+      propertyPath: startPistolAmmunition
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 1011742241944957338, guid: 353879bfe118df3438a766dac55523ab,
+        type: 3}
+      propertyPath: startShotgunAmmunition
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 1011742241944957338, guid: 353879bfe118df3438a766dac55523ab,
+        type: 3}
+      propertyPath: rifleMagazineSize
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 1011742241944957338, guid: 353879bfe118df3438a766dac55523ab,
+        type: 3}
+      propertyPath: pistolMagazineSize
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 1011742241944957338, guid: 353879bfe118df3438a766dac55523ab,
+        type: 3}
+      propertyPath: shotgunMagazineSize
+      value: 20
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 353879bfe118df3438a766dac55523ab, type: 3}
 --- !u!1001 &7681634329938356438

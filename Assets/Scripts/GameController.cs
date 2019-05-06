@@ -149,9 +149,7 @@ public class GameController : MonoBehaviour
         players = new List<GameObject>();
         mb = GameObject.Find("MapController").GetComponent<MapBehavior>();
         SpawnTeams();
-        //map = GameObject.Find("MapController").GetComponent<MapBehavior>();
         StartCoroutine("ZoneHandler");
-
     }
 
     // Update is called once per frame
