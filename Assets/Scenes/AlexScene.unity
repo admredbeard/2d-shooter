@@ -612,12 +612,12 @@ MonoBehaviour:
   rifleDamage: 10
   pistolDamage: 2
   shotgunDamage: 2
-  rifleBulletSpeed: 1800
-  pistolBulletSpeed: 1400
-  shotgunBulletSpeed: 1100
+  rifleBulletSpeed: 120
+  pistolBulletSpeed: 65
+  shotgunBulletSpeed: 60
   rifleBulletRange: 1.2
   pistolBulletRange: 0.5
-  shotgunBulletRange: 0.35
+  shotgunBulletRange: 0.3
   startRifleAmmunition: 10
   startPistolAmmunition: 20
   startShotgunAmmunition: 8
@@ -912,6 +912,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0.39801025
+      objectReference: {fileID: 0}
+    - target: {fileID: 7681634328660707298, guid: a1eaedbd8a882974cac2d840ffa33811,
+        type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: -1.0610046
       objectReference: {fileID: 0}
     - target: {fileID: 7681634329482883338, guid: a1eaedbd8a882974cac2d840ffa33811,
         type: 3}
