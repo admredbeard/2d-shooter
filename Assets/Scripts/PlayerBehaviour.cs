@@ -199,9 +199,9 @@ public class PlayerBehaviour : MonoBehaviour
             if (rifleMagazineAmmunition > 0)
             {
                 fired = true;
-                GameObject myBullet = Instantiate(gc.rifleBullet, transform.position + transform.up, Quaternion.identity);
+                GameObject myBullet = Instantiate(gc.rifleBullet, transform.position + (transform.up * 2), Quaternion.identity);
                 BulletInformation bulletInfo = myBullet.GetComponent<BulletInformation>();
-                bulletInfo.InitiateBullet(gc.rifleDamage, gc.rifleBulletSpeed, transform.up);
+                bulletInfo.InitiateBullet(gc.rifleDamage, gc.rifleBulletSpeed, transform.up, gameObject, 1.2f);
                 rifleMagazineAmmunition -= 1;
                 yield return new WaitForSeconds(gc.rifleCD);
                 fired = false;
@@ -216,9 +216,9 @@ public class PlayerBehaviour : MonoBehaviour
             if (pistolMagazineAmmunition > 0)
             {
                 fired = true;
-                GameObject myBullet = Instantiate(gc.pistolBullet, transform.position + transform.up, Quaternion.identity);
+                GameObject myBullet = Instantiate(gc.pistolBullet, transform.position + (transform.up * 2), Quaternion.identity);
                 BulletInformation bulletInfo = myBullet.GetComponent<BulletInformation>();
-                bulletInfo.InitiateBullet(gc.pistolDamage, gc.pistolBulletSpeed, transform.up);
+                bulletInfo.InitiateBullet(gc.pistolDamage, gc.pistolBulletSpeed, transform.up, gameObject, 0.5f);
                 pistolMagazineAmmunition -= 1;
                 yield return new WaitForSeconds(gc.pistolCD);
                 fired = false;
@@ -230,12 +230,37 @@ public class PlayerBehaviour : MonoBehaviour
         }
         else if (currentWeapon == Weapon.Shotgun && !fired && !weaponSwap)
         {
+            int shotgunBulletAmount = 6; //This number needs to be dividable with 3, eg 3, 6, 9 etc.
+            float spreadFactor = 0.09f;
             if (shotgunMagazineAmmunition > 0)
             {
                 fired = true;
-                GameObject myBullet = Instantiate(gc.shotgunBullet, transform.position + transform.up, Quaternion.identity);
-                BulletInformation bulletInfo = myBullet.GetComponent<BulletInformation>();
-                bulletInfo.InitiateBullet(gc.shotgunDamage, gc.shotgunBulletSpeed, transform.up);
+
+                for (int i = 0; i < shotgunBulletAmount; i++)
+                {
+                    Vector3 [] bullet = RandomDirections(transform.up, spreadFactor * i, 1);
+                    GameObject myBullet = Instantiate(gc.shotgunBullet, transform.position + (transform.up * 2), Quaternion.identity);
+                    BulletInformation straightBulletInfo = myBullet.GetComponent<BulletInformation>();
+                    straightBulletInfo.InitiateBullet(gc.shotgunDamage, gc.shotgunBulletSpeed, bullet[0], gameObject, 0.4f);
+                }
+                /* 
+                Vector3[] straightBullets = RandomDirections(transform.up, 0.2f, shotgunBulletAmount / 3);
+                Vector3[] leftBullets = RandomDirections(transform.up, 0.45f, shotgunBulletAmount / 3);
+                Vector3[] rightBullets = RandomDirections(transform.up, 0.45f, shotgunBulletAmount / 3);
+    
+                for (int i = 0; i < shotgunBulletAmount / 3; i++)
+                {
+                    GameObject straightBullet = Instantiate(gc.shotgunBullet, transform.position + (transform.up * 2), Quaternion.identity);
+                    BulletInformation straightBulletInfo = straightBullet.GetComponent<BulletInformation>();
+                    straightBulletInfo.InitiateBullet(gc.shotgunDamage, gc.shotgunBulletSpeed, straightBullets[i], gameObject);
+                    GameObject leftBullet = Instantiate(gc.shotgunBullet, transform.position + (transform.up * 2), Quaternion.identity);
+                    BulletInformation leftBulletInfo = leftBullet.GetComponent<BulletInformation>();
+                    leftBulletInfo.InitiateBullet(gc.shotgunDamage, gc.shotgunBulletSpeed, straightBullets[i], gameObject);
+                    GameObject rightBullet = Instantiate(gc.shotgunBullet, transform.position + (transform.up * 2), Quaternion.identity);
+                    BulletInformation rightBulletInfo = rightBullet.GetComponent<BulletInformation>();
+                    rightBulletInfo.InitiateBullet(gc.shotgunDamage, gc.shotgunBulletSpeed, straightBullets[i], gameObject);
+                }*/
+
                 shotgunMagazineAmmunition -= 1;
                 yield return new WaitForSeconds(gc.shotgunCD);
                 fired = false;
@@ -249,6 +274,18 @@ public class PlayerBehaviour : MonoBehaviour
         {
             print(currentWeapon.ToString() + " bullet cooldown");
         }
+    }
+
+    Vector3[] RandomDirections(Vector3 direction, float offset, int amount)
+    {
+        Vector3[] bulletDirs = new Vector3[amount];
+        for (int i = 0; i < amount; i++)
+        {
+            float x = Random.Range(-offset, offset);
+            float y = Random.Range(-offset, offset);
+            bulletDirs[i] = direction + new Vector3(x, y, 0f);
+        }
+        return bulletDirs;
     }
 }
 
