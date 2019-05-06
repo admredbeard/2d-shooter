@@ -5,10 +5,12 @@ using UnityEngine;
 public class ZoneBehaviourScript : MonoBehaviour
 {
     SpriteRenderer zoneImage;
+    GameController gc;
     // Start is called before the first frame update
     void Start()
     {
         MapBehavior map = GameObject.Find("MapController").GetComponent<MapBehavior>();
+        gc = GameObject.Find("GameController").GetComponent<GameController>();
         int size = map.GetMapSize();
         Vector3 zoneScale = new Vector3(size/5, size/5, 1);
         zoneImage = GetComponent<SpriteRenderer>();
@@ -22,9 +24,9 @@ public class ZoneBehaviourScript : MonoBehaviour
             foreach(Collider2D unit in unitsWithinRange){
                 //change to two different tags depending on team and give score accordingly
                 if (unit.tag == "Player"){
-                    Debug.Log("Player in range! gief score");
+                    gc.GiveScoreToTeamOne(10);
                 }else if(unit.tag == "Player"){
-
+                    gc.GiveScoreToTeamTwo(10);
                 }                                           
             }
             yield return new WaitForSeconds(5);
