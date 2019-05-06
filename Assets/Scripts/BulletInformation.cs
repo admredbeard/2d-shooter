@@ -68,7 +68,7 @@ public class BulletInformation : MonoBehaviour
     IEnumerator ProjectileDestruction(Vector3 direction, float bulletSpeed)
     {
         float time = 0f;
-        float step = 0.025f;
+        float step = 0.01f;
 
         while (time < lifeTime && !hit)
         {

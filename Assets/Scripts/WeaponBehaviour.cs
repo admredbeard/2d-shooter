@@ -14,6 +14,9 @@ public class WeaponBehaviour : MonoBehaviour
     public float rifleBulletSpeed = 100f;
     public float pistolBulletSpeed = 70f;
     public float shotgunBulletSpeed = 80f;
+    public float rifleBulletRange = 1.2f;
+    public float pistolBulletRange = 0.5f;
+    public float shotgunBulletRange = 0.35f;
     public float startRifleAmmunition = 0f;
     public float startPistolAmmunition = 0f;
     public float startShotgunAmmunition = 0f;
