@@ -10,26 +10,10 @@ public class GameController : MonoBehaviour
     private int team1Score;
     private int team2Score;
     List<GameObject> players;
-    public GameObject rifleBullet;
-    public GameObject pistolBullet;
-    public GameObject shotgunBullet;
-    public float rifleDamage = 0f;
-    public float pistolDamage = 0f;
-    public float shotgunDamage = 0f;
-    public float rifleBulletSpeed = 100f;
-    public float pistolBulletSpeed = 70f;
-    public float shotgunBulletSpeed = 80f;
-    public float startRifleAmmunition = 0f;
-    public float startPistolAmmunition = 0f;
-    public float startShotgunAmmunition = 0f;
 
-    public float rifleMagazineSize = 0f;
-    public float pistolMagazineSize = 0f;
-    public float shotgunMagazineSize = 0f;
-    public float reloadTime = 1f;
-    public float pistolCD = 1f;
-    public float shotgunCD = 1f;
-    public float rifleCD = 0.1f;
+
+
+
     public float GetHp(int unitID)
     {
         return players[unitID].GetComponent<PlayerBehaviour>().GetHealth();
@@ -88,6 +72,7 @@ public class GameController : MonoBehaviour
         for (int i = 0; i < 2 * teamSize; i++)
         {
             GameObject temp = GameObject.Instantiate(playerPrefab) as GameObject;
+            temp.name = "CoolDude";
             PlayerBehaviour tempBehaviour = temp.GetComponent<PlayerBehaviour>();
             tempBehaviour.SetID(i);
             if (i < teamSize)
@@ -101,18 +86,22 @@ public class GameController : MonoBehaviour
 
         }
     }
+    private void Respawn(int unitID) {
+
+    }
 
     // Start is called before the first frame update
     void Start()
     {
         SpawnTeams();
 
-
     }
 
     // Update is called once per frame
     void Update()
     {
-
+        for (int i = 0; i < players.Count; i++) {
+            if (GetHp(i) < 0) Respawn(i);
+        }
     }
 }
