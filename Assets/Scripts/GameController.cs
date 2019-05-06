@@ -10,28 +10,31 @@ public class GameController : MonoBehaviour
     private int team1Score;
     private int team2Score;
     List<GameObject> players;
-    public GameObject rifleBullet;
-    public GameObject pistolBullet;
-    public GameObject shotgunBullet;
-    public float rifleDamage = 0f;
-    public float pistolDamage = 0f;
-    public float shotgunDamage = 0f;
-    public float rifleBulletSpeed = 100f;
-    public float pistolBulletSpeed = 70f;
-    public float shotgunBulletSpeed = 80f;
-    public float startRifleAmmunition = 0f;
-    public float startPistolAmmunition = 0f;
-    public float startShotgunAmmunition = 0f;
+    public GameObject zoneObj;
+    MapBehavior mb;
+    public void GiveScoreToTeamOne(int score)
+    {
+        team1Score = team1Score + score;
+    }
 
-    public float rifleMagazineSize = 0f;
-    public float pistolMagazineSize = 0f;
-    public float shotgunMagazineSize = 0f;
-    public float reloadTime = 1f;
-    public float pistolCD = 1f;
-    public float shotgunCD = 1f;
-    public float rifleCD = 0.1f;
+    public void GiveScoreToTeamTwo(int score)
+    {
+        team2Score = team2Score + score;
+    }
+
+    public int GetTeamOneScore()
+    {
+        return team1Score;
+    }
+
+    public int GetTeamTwoScore()
+    {
+        return team2Score;
+    }
+
     public float GetHp(int unitID)
     {
+
         return players[unitID].GetComponent<PlayerBehaviour>().GetHealth();
     }
 
@@ -85,11 +88,15 @@ public class GameController : MonoBehaviour
     // Spawning teamSize units for each team and assigning unique UnitIDs aswell as Team with values -1 or 1.
     private void SpawnTeams()
     {
+
         for (int i = 0; i < 2 * teamSize; i++)
         {
-            GameObject temp = GameObject.Instantiate(playerPrefab) as GameObject;
+            GameObject temp = Instantiate(playerPrefab) as GameObject;
+            temp.name = "CoolDude";
             PlayerBehaviour tempBehaviour = temp.GetComponent<PlayerBehaviour>();
             tempBehaviour.SetID(i);
+
+            players.Add(temp);
             if (i < teamSize)
             {
                 tempBehaviour.SetTeam(-1);
@@ -98,15 +105,52 @@ public class GameController : MonoBehaviour
             {
                 tempBehaviour.SetTeam(1);
             }
-
+            //Respawn(i);
         }
+
+    }
+
+    private void Respawn(int unitID) {
+        GameObject respawnUnit = players[unitID];
+
+        int tempXIdx = 0;
+        int tempYIdx = 0;
+        for (int i = 0; i < players.Count; i++) { 
+            if (respawnUnit.GetComponent<PlayerBehaviour>().team != players[i].GetComponent<PlayerBehaviour>().team) {
+                tempXIdx += (int)mb.GetGridPosFromWorldPos(players[i].transform.position).x;
+                tempYIdx += (int)mb.GetGridPosFromWorldPos(players[i].transform.position).y;
+            }
+        }
+        tempXIdx = tempXIdx / teamSize;
+        tempYIdx = tempYIdx / teamSize;
+
+        Vector2 meanPos = mb.GetWorldPosFromGridPos(tempXIdx, tempYIdx);
+        bool [,] traverability = mb.GetTraversable();
+        Vector2[] corners = { mb.GetWorldPosFromGridPos(0, 0), mb.GetWorldPosFromGridPos(traverability.GetLength(0) - 1, 0),
+                            mb.GetWorldPosFromGridPos(traverability.GetLength(0) - 1, 0), mb.GetWorldPosFromGridPos(traverability.GetLength(0) - 1, traverability.GetLength(0) - 1) };
+        float tempDist = 0;
+        float maxdist = 0;
+        Vector2 spawnPos = meanPos;
+        for (int i = 0; i < corners.Length; i++) {
+            tempDist = Vector2.Distance(meanPos, corners[i]);
+            if (tempDist > maxdist) {
+                maxdist = tempDist;
+                spawnPos = corners[i];
+            }
+        }
+
+        respawnUnit.transform.position = spawnPos;
+        respawnUnit.GetComponent<PlayerBehaviour>().ResetStats();
     }
 
     // Start is called before the first frame update
     void Start()
     {
+        players = new List<GameObject>();
+        mb = GameObject.Find("MapController").GetComponent<MapBehavior>();
         SpawnTeams();
-
+        map = GameObject.Find("MapController").GetComponent<MapBehavior>();
+        StartCoroutine("ZoneHandler");
 
     }
 
@@ -114,5 +158,22 @@ public class GameController : MonoBehaviour
     void Update()
     {
 
+    }
+
+    private Vector3 GetRandomZonePosition(){
+        int mapSize = map.GetMapSize();
+        float worldSize = mapSize*2.5f;
+        float x_cord = Random.Range(5f,worldSize-5f);
+        float y_cord = Random.Range(5f,worldSize-5f);
+        return new Vector3(x_cord, y_cord, -2);
+    }
+
+    IEnumerator ZoneHandler(){
+        yield return new WaitForSeconds(10f);
+        while(true){
+            GameObject zone = Instantiate(zoneObj, GetRandomZonePosition(), Quaternion.identity);
+            yield return new WaitForSeconds(30f);
+            Destroy(zone);
+        }
     }
 }

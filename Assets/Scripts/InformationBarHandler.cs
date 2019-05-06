@@ -5,14 +5,21 @@ using UnityEngine.UI;
 
 public class InformationBarHandler : MonoBehaviour
 {
-
     GameObject[] players = new GameObject[6];
     PlayerBehaviour[] playerBehaviours = new PlayerBehaviour[6];
     Text[] playerWeapons = new Text[6];
     Text[] playerAmmo = new Text[6];
+    GameController gc;
+    Text team1Score;
+    Text team2Score;
 
     void Start()
     {
+        gc = GameObject.Find("GameController").GetComponent<GameController>();
+        GameObject ui = GameObject.Find("UI").gameObject;
+        team1Score = GameObject.Find("Team1ScoreText").GetComponent<Text>();
+        team2Score = GameObject.Find("Team2ScoreText").GetComponent<Text>();
+
         players[0] = GameObject.Find("CoolDude");
         //players[1] = GameObject.Find("Player2").GetComponent<Text>().text;
         //players[2] = GameObject.Find("Player3").GetComponent<Text>().text;
@@ -48,7 +55,8 @@ public class InformationBarHandler : MonoBehaviour
     {
         while (true)
         {
-
+            team1Score.text = gc.GetTeamOneScore().ToString();
+            team2Score.text = gc.GetTeamTwoScore().ToString();
             for (int i = 0; i < players.Length; i++)
             {
 

@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 661196596354011424}
   - component: {fileID: 1537186769419404479}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Sprite
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -89,7 +89,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6616023905831649554}
   - component: {fileID: 3665843451146719818}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Big_Stone
   m_TagString: Untagged
   m_Icon: {fileID: 0}

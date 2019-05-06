@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 5518560716973754582}
   - component: {fileID: 8597684016461245155}
   - component: {fileID: 2171747511456006192}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Three_Stones
   m_TagString: Untagged
   m_Icon: {fileID: 0}
