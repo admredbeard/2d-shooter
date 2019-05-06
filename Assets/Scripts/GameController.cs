@@ -30,7 +30,11 @@ public class GameController : MonoBehaviour
     public float pistolCD = 1f;
     public float shotgunCD = 1f;
     public float rifleCD = 0.1f;
-
+    
+    
+    public GameObject zoneObj;
+    private MapBehavior map;
+    
     public void GiveScoreToTeamOne(int score)
     {
         team1Score = team1Score + score;
@@ -127,13 +131,30 @@ public class GameController : MonoBehaviour
     void Start()
     {
         SpawnTeams();
-
-
+        map = GameObject.Find("MapController").GetComponent<MapBehavior>();
+        StartCoroutine("ZoneHandler");
     }
 
     // Update is called once per frame
     void Update()
     {
 
+    }
+
+    private Vector3 GetRandomZonePosition(){
+        int mapSize = map.GetMapSize();
+        float worldSize = mapSize*2.5f;
+        float x_cord = Random.Range(5f,worldSize-5f);
+        float y_cord = Random.Range(5f,worldSize-5f);
+        return new Vector3(x_cord, y_cord, -2);
+    }
+
+    IEnumerator ZoneHandler(){
+        yield return new WaitForSeconds(10f);
+        while(true){
+            GameObject zone = Instantiate(zoneObj, GetRandomZonePosition(), Quaternion.identity);
+            yield return new WaitForSeconds(30f);
+            Destroy(zone);
+        }
     }
 }
