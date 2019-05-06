@@ -7,7 +7,7 @@ public class PlayerBehaviour : MonoBehaviour
 
     void Start()
     {
-        wc = GetComponent<WeaponBehaviour>();
+        wc = GameObject.Find("Bullets").GetComponent<WeaponBehaviour>();
         ResetStats();
 
     }
@@ -199,7 +199,7 @@ public class PlayerBehaviour : MonoBehaviour
                 
                 GameObject myBullet = Instantiate(wc.rifleBullet, transform.position + (transform.up * 2), Quaternion.identity);
                 BulletInformation bulletInfo = myBullet.GetComponent<BulletInformation>();
-                bulletInfo.InitiateBullet(wc.rifleDamage, wc.rifleBulletSpeed, transform.up, gameObject, 1.2f);
+                bulletInfo.InitiateBullet(wc.rifleDamage, wc.rifleBulletSpeed, transform.up, gameObject, wc.rifleBulletRange);
 
                 rifleMagazineAmmunition -= 1;
                 yield return new WaitForSeconds(wc.rifleCD);
@@ -218,7 +218,8 @@ public class PlayerBehaviour : MonoBehaviour
 
                 GameObject myBullet = Instantiate(wc.pistolBullet, transform.position + (transform.up * 2), Quaternion.identity);
                 BulletInformation bulletInfo = myBullet.GetComponent<BulletInformation>();
-                bulletInfo.InitiateBullet(wc.pistolDamage, wc.pistolBulletSpeed, transform.up, gameObject, 0.5f);
+                print(wc.pistolBulletSpeed);
+                bulletInfo.InitiateBullet(wc.pistolDamage, wc.pistolBulletSpeed, transform.up, gameObject, wc.pistolBulletRange);
 
                 pistolMagazineAmmunition -= 1;
                 yield return new WaitForSeconds(wc.pistolCD);
@@ -243,7 +244,7 @@ public class PlayerBehaviour : MonoBehaviour
                     Vector3 [] bullet = RandomDirections(transform.up, spreadFactor * i, 1);
                     GameObject myBullet = Instantiate(wc.shotgunBullet, transform.position + (transform.up * 2), Quaternion.identity);
                     BulletInformation straightBulletInfo = myBullet.GetComponent<BulletInformation>();
-                    straightBulletInfo.InitiateBullet(wc.shotgunDamage, wc.shotgunBulletSpeed, bullet[0], gameObject, 0.4f);
+                    straightBulletInfo.InitiateBullet(wc.shotgunDamage, wc.shotgunBulletSpeed, bullet[0], gameObject, wc.shotgunBulletRange);
                 }
                 /* 
                 Vector3[] straightBullets = RandomDirections(transform.up, 0.2f, shotgunBulletAmount / 3);
