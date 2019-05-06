@@ -147,7 +147,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62c5b92f4c7170449b5917b7c7e30d74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bullet: {fileID: 2851899142666349329, guid: 6189dd1046d905b47a225b7bf57b8c6c, type: 3}
 --- !u!114 &1011742241944957338
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -160,6 +159,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84ee25ab30db17b4e9faba286d55ee82, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  rifleBullet: {fileID: 3086015439523230666, guid: 82cf83446257dc140a24066e1f9c0cae,
+    type: 3}
+  pistolBullet: {fileID: 7665035862566708980, guid: f963e7395aa1f804f96f1ed172721ac9,
+    type: 3}
+  shotgunBullet: {fileID: 4409441947048094875, guid: 43308319752b3234280da76aff2c1c89,
+    type: 3}
+  rifleDamage: 2
+  pistolDamage: 3
+  shotgunDamage: 2
+  rifleBulletSpeed: 100
+  pistolBulletSpeed: 70
+  shotgunBulletSpeed: 80
+  startRifleAmmunition: 30
+  startPistolAmmunition: 15
+  startShotgunAmmunition: 8
+  rifleMagazineSize: 10
+  pistolMagazineSize: 5
+  shotgunMagazineSize: 2
+  reloadTime: 1
+  pistolCD: 0.2
+  shotgunCD: 0.5
+  rifleCD: 0.1
 --- !u!114 &7033084689233758923
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -173,6 +194,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   visionRange: 10
+  health: 0
   maxHealth: 10
   id: -1
   team: 0
