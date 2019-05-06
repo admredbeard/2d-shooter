@@ -218,13 +218,13 @@ public class PlayerBehaviour : MonoBehaviour
 
                 GameObject myBullet = Instantiate(wc.pistolBullet, transform.position + (transform.up * 2), Quaternion.identity);
                 BulletInformation bulletInfo = myBullet.GetComponent<BulletInformation>();
-                print(wc.pistolBulletSpeed);
                 bulletInfo.InitiateBullet(wc.pistolDamage, wc.pistolBulletSpeed, transform.up, gameObject, wc.pistolBulletRange);
 
                 pistolMagazineAmmunition -= 1;
                 yield return new WaitForSeconds(wc.pistolCD);
                 fired = false;
             }
+
             else
             {
                 print("No more pistol ammunition in magazine");
