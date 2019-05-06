@@ -54,7 +54,7 @@ public class GameController : MonoBehaviour
     public int GetTeamTwoScore()
     {
         return team2Score;
-    
+    }
 
     public float GetHp(int unitID)
     {
@@ -128,9 +128,6 @@ public class GameController : MonoBehaviour
 
         }
     }
-    private void Respawn(int unitID) {
-
-    }
 
     // Start is called before the first frame update
     void Start()
@@ -144,9 +141,7 @@ public class GameController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        for (int i = 0; i < players.Count; i++) {
-            if (GetHp(i) < 0) Respawn(i);
-        }
+
     }
 
     private Vector3 GetRandomZonePosition(){
