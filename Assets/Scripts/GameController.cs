@@ -10,9 +10,27 @@ public class GameController : MonoBehaviour
     private int team1Score;
     private int team2Score;
     List<GameObject> players;
+    public GameObject zoneObj;
     MapBehavior mb;
+    public void GiveScoreToTeamOne(int score)
+    {
+        team1Score = team1Score + score;
+    }
 
+    public void GiveScoreToTeamTwo(int score)
+    {
+        team2Score = team2Score + score;
+    }
 
+    public int GetTeamOneScore()
+    {
+        return team1Score;
+    }
+
+    public int GetTeamTwoScore()
+    {
+        return team2Score;
+    }
 
     public float GetHp(int unitID)
     {
@@ -70,8 +88,7 @@ public class GameController : MonoBehaviour
     // Spawning teamSize units for each team and assigning unique UnitIDs aswell as Team with values -1 or 1.
     private void SpawnTeams()
     {
-        Debug.Log(players.Count);
-        Debug.Log(players.Count);
+
         for (int i = 0; i < 2 * teamSize; i++)
         {
             GameObject temp = Instantiate(playerPrefab) as GameObject;
@@ -132,14 +149,31 @@ public class GameController : MonoBehaviour
         players = new List<GameObject>();
         mb = GameObject.Find("MapController").GetComponent<MapBehavior>();
         SpawnTeams();
+        map = GameObject.Find("MapController").GetComponent<MapBehavior>();
+        StartCoroutine("ZoneHandler");
 
     }
 
     // Update is called once per frame
     void Update()
     {
-        for (int i = 0; i < players.Count; i++) {
-            if (GetHp(i) < 0) Respawn(i);
+
+    }
+
+    private Vector3 GetRandomZonePosition(){
+        int mapSize = map.GetMapSize();
+        float worldSize = mapSize*2.5f;
+        float x_cord = Random.Range(5f,worldSize-5f);
+        float y_cord = Random.Range(5f,worldSize-5f);
+        return new Vector3(x_cord, y_cord, -2);
+    }
+
+    IEnumerator ZoneHandler(){
+        yield return new WaitForSeconds(10f);
+        while(true){
+            GameObject zone = Instantiate(zoneObj, GetRandomZonePosition(), Quaternion.identity);
+            yield return new WaitForSeconds(30f);
+            Destroy(zone);
         }
     }
 }

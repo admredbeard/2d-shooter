@@ -23,7 +23,7 @@ public class CameraMovement : MonoBehaviour
     {
         yield return new WaitForSeconds(0.01f);
         Vector2 mapMid = mapBehavior.GetMapMiddle();
-        transform.position = new Vector3(mapMid.x, mapMid.y, -1);
+        transform.position = new Vector3(mapMid.x, mapMid.y, -10);
     }
 
     // Update is called once per frame

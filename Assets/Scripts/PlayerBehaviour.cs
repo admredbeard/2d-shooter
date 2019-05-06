@@ -7,9 +7,9 @@ public class PlayerBehaviour : MonoBehaviour
 
     void Start()
     {
-       
         wc = GetComponent<WeaponBehaviour>();
         ResetStats();
+
     }
 
     public float visionRange = 10f;
