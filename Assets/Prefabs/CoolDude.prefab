@@ -109,7 +109,6 @@ GameObject:
   m_Component:
   - component: {fileID: 9124713105886943217}
   - component: {fileID: 1209651595087677407}
-  - component: {fileID: 1011742241944957338}
   - component: {fileID: 7033084689233758923}
   - component: {fileID: 8651696168665407229}
   - component: {fileID: 885329942}
@@ -147,19 +146,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62c5b92f4c7170449b5917b7c7e30d74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bullet: {fileID: 2851899142666349329, guid: 6189dd1046d905b47a225b7bf57b8c6c, type: 3}
---- !u!114 &1011742241944957338
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4212678750477882354}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 84ee25ab30db17b4e9faba286d55ee82, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &7033084689233758923
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -173,6 +159,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   visionRange: 10
+  health: 0
   maxHealth: 10
   id: -1
   team: 0

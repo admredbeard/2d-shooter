@@ -23,25 +23,25 @@ public class CameraMovement : MonoBehaviour
     {
         yield return new WaitForSeconds(0.01f);
         Vector2 mapMid = mapBehavior.GetMapMiddle();
-        transform.position = new Vector3(mapMid.x, mapMid.y, -1);
+        transform.position = new Vector3(mapMid.x, mapMid.y, -10);
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKey("up") || Input.GetKey("w"))
+        if (Input.GetKey("up"))
         {
             transform.Translate(0, cameraSpeed * Time.deltaTime, 0, Space.World);
         }
-        if (Input.GetKey("down") || Input.GetKey("s"))
+        if (Input.GetKey("down"))
         {
             transform.Translate(0, -cameraSpeed * Time.deltaTime, 0, Space.World);
         }
-        if (Input.GetKey("left") || Input.GetKey("a"))
+        if (Input.GetKey("left"))
         {
             transform.Translate(-cameraSpeed * Time.deltaTime, 0, 0, Space.World);
         }
-        if (Input.GetKey("right") || Input.GetKey("d"))
+        if (Input.GetKey("right"))
         {
             transform.Translate(cameraSpeed * Time.deltaTime, 0, 0, Space.World);
         }
