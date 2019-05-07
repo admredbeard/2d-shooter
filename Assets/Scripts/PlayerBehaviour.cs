@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerBehaviour : MonoBehaviour
 {
@@ -69,7 +70,8 @@ public class PlayerBehaviour : MonoBehaviour
         health -= damage;
     }
 
-    public void ResetStats() {
+    public void ResetStats()
+    {
         health = maxHealth;
         rifleAmmunition = wc.startRifleAmmunition - wc.rifleMagazineSize;
         shotgunAmmunition = wc.startShotgunAmmunition - wc.shotgunMagazineSize;
@@ -196,7 +198,7 @@ public class PlayerBehaviour : MonoBehaviour
             if (rifleMagazineAmmunition > 0)
             {
                 fired = true;
-                
+
                 GameObject myBullet = Instantiate(wc.rifleBullet, transform.position + (transform.up * 2), Quaternion.identity);
                 BulletInformation bulletInfo = myBullet.GetComponent<BulletInformation>();
                 bulletInfo.InitiateBullet(wc.rifleDamage, wc.rifleBulletSpeed, transform.up, gameObject, wc.rifleBulletRange);
@@ -241,7 +243,7 @@ public class PlayerBehaviour : MonoBehaviour
 
                 for (int i = 0; i < shotgunBulletAmount; i++)
                 {
-                    Vector3 [] bullet = RandomDirections(transform.up, spreadFactor * i, 1);
+                    Vector3[] bullet = RandomDirections(transform.up, spreadFactor * i, 1);
                     GameObject myBullet = Instantiate(wc.shotgunBullet, transform.position + (transform.up * 2), Quaternion.identity);
                     BulletInformation straightBulletInfo = myBullet.GetComponent<BulletInformation>();
                     straightBulletInfo.InitiateBullet(wc.shotgunDamage, wc.shotgunBulletSpeed, bullet[0], gameObject, wc.shotgunBulletRange);

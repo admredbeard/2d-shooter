@@ -32,7 +32,7 @@ public class BulletInformation : MonoBehaviour
         {
             PlayerBehaviour player = target.GetComponent<PlayerBehaviour>();
 
-            if (target.tag.Equals("Player") && player != null && target.name != attackerObject.name)
+            if (target.tag.Equals("Player") && player != null && target != attackerObject)
             {
                 player.TakeDamage(damage);
                 print("Damage");
