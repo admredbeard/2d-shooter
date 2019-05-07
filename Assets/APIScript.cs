@@ -4,9 +4,10 @@ using UnityEngine;
 
 public class APIScript : MonoBehaviour
 {
+    GameController gc;
     void Start()
     {
-
+        gc = GameObject.Find("GameController").GetComponent<GameController> ();
     }
 
     public void Move(int unitId, float angle)
