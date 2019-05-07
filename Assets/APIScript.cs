@@ -83,39 +83,46 @@ public class APIScript : MonoBehaviour
 
     public void Attack(int unitId)
     {
-        //Unit must be on your team
+        PlayerBehaviour player = gc.GetPlayerBehaviours()[unitId];
+        StartCoroutine(player.FireWeapon());
     }
 
     public void SwapWeapon(int unitId, Weapon newWeapon)
     {
+        PlayerBehaviour player = gc.GetPlayerBehaviours()[unitId];
+        StartCoroutine(player.ChangeWeapon(newWeapon));
         //Unit must be on your team
     }
 
     public void ReloadWeapon(int unitId)
     {
-        //Unit must be on your team
+        PlayerBehaviour player = gc.GetPlayerBehaviours()[unitId];
+        StartCoroutine(player.ReloadWeapon());
     }
 
-    public float GetTotalAmmunition(int unitId)
+    public int GetReserveAmmunition(int unitId, Weapon weapon)
     {
-        //Unit must be on your team
-        return 0f;
+        PlayerBehaviour player = gc.GetPlayerBehaviours()[unitId];
+        return player.GetReserveAmmunition(weapon);
     }
 
-    public float GetMagazineAmmunition(int unitId)
+    public int GetMagazineAmmunition(int unitId, Weapon weapon)
     {
         //Unit must be on your team
-        return 0f;
+        PlayerBehaviour player = gc.GetPlayerBehaviours()[unitId];
+        return player.GetMagazineAmmunition(weapon);
     }
 
     public Weapon GetWeapon(int unitId)
     {
-        return Weapon.Knife;
+        PlayerBehaviour player = gc.GetPlayerBehaviours()[unitId];
+        return player.GetWeapon();
     }
 
     public float GetHealth(int unitId)
     {
-        return 0f;
+        PlayerBehaviour player = gc.GetPlayerBehaviours()[unitId];
+        return player.GetHealth();
     }
 
     public bool IsGridPositionTraversable(Vector2Int gridPosition)

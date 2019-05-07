@@ -18,7 +18,7 @@ public class InputBehaviour : MonoBehaviour
     {
         anim = GetComponentInChildren<Animator>();
         weaponBehaviour = GetComponent<WeaponBehaviour>();
-        player = GameObject.Find("CoolDude").GetComponent<PlayerBehaviour>();
+        player = gameObject.GetComponent<PlayerBehaviour>();
     }
     void Update()
     {

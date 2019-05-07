@@ -131,7 +131,7 @@ public class GameController : MonoBehaviour
         int playerCount = 0;
         for (int i = 0; i < players.Count; i++)
         {
-            if (respawnUnit.GetComponent<PlayerBehaviour>().team != players[i].GetComponent<PlayerBehaviour>().team)
+            if (respawnUnit.GetComponent<PlayerBehaviour>().GetTeam() != players[i].GetComponent<PlayerBehaviour>().GetTeam())
             {
                 tempXIdx += (int)mb.GetGridPosFromWorldPos(players[i].transform.position).x;
                 tempYIdx += (int)mb.GetGridPosFromWorldPos(players[i].transform.position).y;

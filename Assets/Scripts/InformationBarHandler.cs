@@ -63,7 +63,7 @@ public class InformationBarHandler : MonoBehaviour
                 {
                     playerWeapons[i].text = playerBehaviours[i].GetWeapon().ToString();
                     playerAmmo[i].text = playerBehaviours[i].GetCurrentAmmo();
-                    playerHPBars[i].value = playerBehaviours[i].health;
+                    playerHPBars[i].value = playerBehaviours[i].GetHealth();
                 }
                 else
                 {
