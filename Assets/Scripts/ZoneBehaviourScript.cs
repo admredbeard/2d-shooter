@@ -15,6 +15,8 @@ public class ZoneBehaviourScript : MonoBehaviour
         Vector3 zoneScale = new Vector3(size/5, size/5, 1);
         zoneImage = GetComponent<SpriteRenderer>();
         transform.localScale = zoneScale;
+        map.zonePos = transform.position;
+        map.zoneRadius = transform.localScale.x * 1.5f;
         StartCoroutine("Fade");
         StartCoroutine("IsUnitInCircle");
     }
