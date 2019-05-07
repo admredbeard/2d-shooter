@@ -10,6 +10,7 @@ public class GameController : MonoBehaviour
     private int team1Score;
     private int team2Score;
     List<GameObject> players;
+    List<PlayerBehaviour> playerBehaviours;
     public GameObject zoneObj;
     MapBehavior mb;
     bool[,] traverability;
@@ -61,6 +62,11 @@ public class GameController : MonoBehaviour
     {
         return players;
     }
+
+    public List<PlayerBehaviour> GetPlayerBehaviours()
+    {
+        return playerBehaviours;
+    }
     // Returns true if the first object hit is the intended enemy, else returns false
     public bool FreeLineOfSight(int unitID, int enemyID)
     {
@@ -97,10 +103,11 @@ public class GameController : MonoBehaviour
         for (int i = 0; i < 2 * teamSize; i++)
         {
             GameObject temp = Instantiate(playerPrefab) as GameObject;
-            temp.name = "CoolDude";
+            temp.name = "Player" + (i + 1).ToString();
             PlayerBehaviour tempBehaviour = temp.GetComponent<PlayerBehaviour>();
             tempBehaviour.SetID(i);
             players.Add(temp);
+            playerBehaviours.Add(tempBehaviour);
             if (i % 2 == 0)
             {
                 tempBehaviour.SetTeam(-1);
@@ -166,8 +173,8 @@ public class GameController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
         players = new List<GameObject>();
+        playerBehaviours = new List<PlayerBehaviour>();
         mb = GameObject.Find("MapController").GetComponent<MapBehavior>();
         traverability = mb.GetTraversable();
         SpawnTeams();
