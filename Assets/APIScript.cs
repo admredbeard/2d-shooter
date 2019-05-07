@@ -4,9 +4,11 @@ using UnityEngine;
 
 public class APIScript : MonoBehaviour
 {
+    MapBehavior mb;
     GameController gc;
     void Start()
     {
+        mb = GameObject.Find("MapController").GetComponent<MapBehavior>();
         gc = GameObject.Find("GameController").GetComponent<GameController> ();
     }
 
@@ -52,35 +54,31 @@ public class APIScript : MonoBehaviour
     public Vector2 GetWorldPosition(int unitId)
     {
         //Unit must be in vision range or in our team
-
-        Vector2 position = new Vector2();
-        return position;
+        return mb.GetWorldPos(unitId);
     }
 
     public Vector2Int GetGridPos(int unitId)
     {
         //Unit must be in vision range or in our team
-
-        Vector2Int position = new Vector2Int();
-        return position;
+        return mb.GetGridPos(unitId);
     }
 
     public bool TargetInSight(int unitId, int targetId)
     {
         //Unit must be on your team
-        return false;
+        return mb.TargetInSight(unitId, targetId);
     }
 
     public bool WorldPositionInSight(int unitId, Vector2 worldPosition)
     {
         //Unit must be on your team
-        return false;
+        return mb.WorldPositionInSight(unitId, worldPosition);
     }
 
-    public bool GridPositionInSight(int unitId, Vector2Int worldPosition)
+    public bool GridPositionInSight(int unitId, Vector2Int gridPosition)
     {
         //Unit must be on your team
-        return false;
+        return mb.GridPositionInSight(unitId, gridPosition);
     }
 
     public void Attack(int unitId)
@@ -122,35 +120,53 @@ public class APIScript : MonoBehaviour
 
     public bool IsGridPositionTraversable(Vector2Int gridPosition)
     {
-        return false;
+        return mb.IsGridPosTraversable(gridPosition);
     }
 
     public bool IsWorldPositionTraversable(Vector2 worldPosition)
     {
-        return false;
+        return mb.IsWorldPosTraversable(worldPosition);
     }
 
     public bool[,] GetMap()
     {
-        bool[,] map = new bool[100, 100];
-        return map;
+        return mb.GetTraversable();
     }
 
     public float GetDistanceToUnit(int unitId, int targetId)
     {
         //Unit must be in vision range or in our team
-        return 0f;
+        return mb.DistanceToUnit(unitId,targetId);
     }
 
     public float GetDistanceToGridPosition(int unitId, Vector2Int gridPosition)
     {
         //Unit must be in vision range or in our team
-        return 0f;
+        return mb.DistanceToGridPos(unitId, gridPosition);
     }
 
     public float GetDistanceToWorldPosition(int unitId, Vector2 worldPosition)
     {
         //Unit must be in vision range or in our team
-        return 0f;
+        return mb.DistanceToWorldPos(unitId, worldPosition);
     }
+
+    public bool IsUnitInZone(int unitId)
+    {
+        //Unit must be in vision range or in our team
+        return mb.IsUnitInZone(unitId);
+    }
+
+    public bool IsWorldPosInZone(Vector2 worldPos)
+    {
+        //Unit must be in vision range or in our team
+        return mb.IsWorldPosInZone(worldPos);
+    }
+
+    public bool IsGridPosInZone(Vector2Int gridPos)
+    {
+        //Unit must be in vision range or in our team
+        return mb.IsGridPosInZone(gridPos);
+    }
+
 }
