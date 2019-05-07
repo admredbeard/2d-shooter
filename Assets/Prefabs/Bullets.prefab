@@ -1,0 +1,70 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1269241401419406006
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1269241401419406007}
+  - component: {fileID: 1269241401419406008}
+  m_Layer: 0
+  m_Name: Bullets
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1269241401419406007
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1269241401419406006}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -2.444876, y: 2.5739162, z: 3.0074584}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1269241401419406008
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1269241401419406006}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84ee25ab30db17b4e9faba286d55ee82, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rifleBullet: {fileID: 2851899142666349329, guid: 6189dd1046d905b47a225b7bf57b8c6c,
+    type: 3}
+  pistolBullet: {fileID: 2851899142666349329, guid: 6189dd1046d905b47a225b7bf57b8c6c,
+    type: 3}
+  shotgunBullet: {fileID: 2851899142666349329, guid: 6189dd1046d905b47a225b7bf57b8c6c,
+    type: 3}
+  rifleDamage: 10
+  pistolDamage: 2
+  shotgunDamage: 2
+  rifleBulletSpeed: 120
+  pistolBulletSpeed: 65
+  shotgunBulletSpeed: 60
+  rifleBulletRange: 1.2
+  pistolBulletRange: 0.5
+  shotgunBulletRange: 0.3
+  startRifleAmmunition: 10
+  startPistolAmmunition: 20
+  startShotgunAmmunition: 8
+  rifleMagazineSize: 1
+  pistolMagazineSize: 5
+  shotgunMagazineSize: 2
+  reloadTime: 1
+  pistolCD: 0.2
+  shotgunCD: 0.5
+  rifleCD: 0.1
