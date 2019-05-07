@@ -62,7 +62,7 @@
 
     public Vector2 GetWorldPosition(int unitId)
     {
-        //Unit must be on your team
+        //Unit must be in vision range or in our team
 
         Vector2 position = new Vector2();
         return position;
@@ -70,7 +70,7 @@
 
     public Vector2Int GetGridPos(int unitId)
     {
-        //Unit must be on your team
+        //Unit must be in vision range or in our team
 
         Vector2Int position = new Vector2Int();
         return position;
