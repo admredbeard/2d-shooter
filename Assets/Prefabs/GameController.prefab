@@ -46,7 +46,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   teamCount: 2
   teamSize: 3
-  playerPrefab: {fileID: 4212678750477882354, guid: 353879bfe118df3438a766dac55523ab,
+  playerTeam1Prefab: {fileID: 6154268281033095958, guid: 0ff5edb64a090bc4ca0bfeacc0265117,
+    type: 3}
+  playerTeam2Prefab: {fileID: 4037890648441630625, guid: 10faf3f15d385414db3412a44e59a4bb,
     type: 3}
   zoneObj: {fileID: 4402636317333888567, guid: a01c20ca82680ab428a5d66469105d04, type: 3}
 --- !u!114 &4862003688762920001
@@ -61,3 +63,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d9d1aae286683704eaec9c60725d023c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  teamId: 0
