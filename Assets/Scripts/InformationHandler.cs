@@ -102,7 +102,7 @@ public class InformationHandler : MonoBehaviour
         }
 
         public void UpdatePlayerInformation(){
-            hpImage.fillAmount = player.health/player.maxHealth;
+            hpImage.fillAmount = player.GetHealth()/player.maxHealth;
             weaponAmmo.text = player.GetCurrentAmmo();
             weaponText.text = player.GetWeapon().ToString();
 

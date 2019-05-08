@@ -12,7 +12,7 @@ public class PlayerBehaviour : MonoBehaviour
         wc = GameObject.Find("Bullets").GetComponent<WeaponBehaviour>();
         visionSphere = transform.GetChild(1).gameObject;
         visionSphere.transform.localScale = new Vector3(visionRange * 2, visionRange * 2, 0.01f);
-        api = GameObject.Find("Team1API").GetComponent<APIScript>();
+        api = GameObject.Find("Team1Controller").GetComponent<APIScript>();
         anim = GetComponentInChildren<Animator>();
         StartCoroutine(Timers());
         ResetStats();
@@ -155,15 +155,15 @@ public class PlayerBehaviour : MonoBehaviour
     {
         if (currentWeapon == Weapon.Rifle)
         {
-            return rifleMagazineAmmunition + " / " + rifleAmmunition;
+            return rifleMagazineAmmunition + "/" + rifleAmmunition;
         }
         else if (currentWeapon == Weapon.Pistol)
         {
-            return pistolMagazineAmmunition + " / " + pistolAmmunition;
+            return pistolMagazineAmmunition + "/" + pistolAmmunition;
         }
         else if (currentWeapon == Weapon.Shotgun)
         {
-            return shotgunMagazineAmmunition + " / " + shotgunAmmunition;
+            return shotgunMagazineAmmunition + "/" + shotgunAmmunition;
         }
         else
         {
