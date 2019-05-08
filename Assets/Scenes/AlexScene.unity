@@ -281,7 +281,7 @@ PrefabInstance:
     - target: {fileID: 4212678750477882354, guid: 353879bfe118df3438a766dac55523ab,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 9124713105886943217, guid: 353879bfe118df3438a766dac55523ab,
         type: 3}
@@ -470,7 +470,7 @@ PrefabInstance:
     - target: {fileID: 2625785862135064158, guid: b41878e9cba39824c8b808a30ff903fa,
         type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b41878e9cba39824c8b808a30ff903fa, type: 3}
@@ -895,6 +895,36 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269241401419406008, guid: acaed9619b8959e46a84320e3296ea63,
+        type: 3}
+      propertyPath: startRifleAmmunition
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269241401419406008, guid: acaed9619b8959e46a84320e3296ea63,
+        type: 3}
+      propertyPath: startPistolAmmunition
+      value: 20
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269241401419406008, guid: acaed9619b8959e46a84320e3296ea63,
+        type: 3}
+      propertyPath: startShotgunAmmunition
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269241401419406008, guid: acaed9619b8959e46a84320e3296ea63,
+        type: 3}
+      propertyPath: rifleMagazineSize
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269241401419406008, guid: acaed9619b8959e46a84320e3296ea63,
+        type: 3}
+      propertyPath: pistolMagazineSize
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1269241401419406008, guid: acaed9619b8959e46a84320e3296ea63,
+        type: 3}
+      propertyPath: shotgunMagazineSize
+      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: acaed9619b8959e46a84320e3296ea63, type: 3}

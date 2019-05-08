@@ -77,14 +77,13 @@ public class InputBehaviour : MonoBehaviour
             //We should check our atackspeed before we fire, we dont atm    
             if (!knifeActive)
             {
-                anim.SetTrigger("shoot");
                 Fire();
             }
         }
         if (Input.GetMouseButtonDown(1))
         {
             //We should check our atackspeed before we fire, we dont atm
-            anim.SetTrigger("melee");
+            Fire();
         }
     }
 
@@ -98,7 +97,7 @@ public class InputBehaviour : MonoBehaviour
                 handgunActive = false;
                 shotgunActive = false;
                 rifleActive = false;
-                anim.SetTrigger("knife");
+                //anim.SetTrigger("knife");
                 ChangeWeapon(1);
             }
             if (Input.GetKeyDown("2"))
@@ -107,7 +106,7 @@ public class InputBehaviour : MonoBehaviour
                 handgunActive = true;
                 shotgunActive = false;
                 rifleActive = false;
-                anim.SetTrigger("handgun");
+                //anim.SetTrigger("handgun");
                 ChangeWeapon(2);
             }
 
@@ -117,7 +116,7 @@ public class InputBehaviour : MonoBehaviour
                 handgunActive = false;
                 shotgunActive = true;
                 rifleActive = false;
-                anim.SetTrigger("rifle");
+                //anim.SetTrigger("rifle");
                 ChangeWeapon(3);
             }
 
@@ -127,7 +126,7 @@ public class InputBehaviour : MonoBehaviour
                 handgunActive = false;
                 shotgunActive = false;
                 rifleActive = true;
-                anim.SetTrigger("shotgun");
+                //anim.SetTrigger("shotgun");
                 ChangeWeapon(4);
             }
         }
@@ -136,7 +135,7 @@ public class InputBehaviour : MonoBehaviour
         {
             if (!knifeActive) //This if is needed to reload as soon as we switch weapons
             {
-                anim.SetTrigger("reload");
+                //anim.SetTrigger("reload");
                 StartCoroutine(player.ReloadWeapon());
             }
 

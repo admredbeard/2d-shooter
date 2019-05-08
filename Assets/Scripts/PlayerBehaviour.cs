@@ -9,10 +9,11 @@ public class PlayerBehaviour : MonoBehaviour
     void Start()
     {
         wc = GameObject.Find("Bullets").GetComponent<WeaponBehaviour>();
+        anim = GetComponentInChildren<Animator>();
         ResetStats();
 
     }
-
+    Animator anim;
     public float visionRange = 10f;
     private float health = 0f;
     public float maxHealth = 100f;
@@ -137,6 +138,14 @@ public class PlayerBehaviour : MonoBehaviour
         {
             currentWeapon = newWeapon;
             weaponSwap = true;
+            if (currentWeapon == Weapon.Rifle)
+                anim.SetTrigger("rifle");
+            else if (currentWeapon == Weapon.Pistol)
+                anim.SetTrigger("handgun");
+            else if (currentWeapon == Weapon.Shotgun)
+                anim.SetTrigger("shotgun");
+            else
+                anim.SetTrigger("knife");
             yield return new WaitForSeconds(wc.reloadTime);
             weaponSwap = false;
         }
@@ -147,8 +156,9 @@ public class PlayerBehaviour : MonoBehaviour
         if (currentWeapon != Weapon.Knife)
             yield return new WaitForSeconds(wc.reloadTime);
 
-        if (!weaponSwap && !reloading && !fired)
+        if (!weaponSwap && !reloading && !fired && currentWeapon != Weapon.Knife)
         {
+            anim.SetTrigger("reload");
             if (currentWeapon == Weapon.Rifle)
             {
                 if (rifleAmmunition > wc.rifleMagazineSize)
@@ -219,6 +229,7 @@ public class PlayerBehaviour : MonoBehaviour
             {
                 if (rifleMagazineAmmunition > 0)
                 {
+                    anim.SetTrigger("shoot");
                     fired = true;
                     GameObject myBullet = Instantiate(wc.rifleBullet, transform.position + (transform.up * 2), Quaternion.identity);
                     BulletInformation bulletInfo = myBullet.GetComponent<BulletInformation>();
@@ -237,6 +248,7 @@ public class PlayerBehaviour : MonoBehaviour
             {
                 if (pistolMagazineAmmunition > 0)
                 {
+                    anim.SetTrigger("shoot");
                     fired = true;
                     GameObject myBullet = Instantiate(wc.pistolBullet, transform.position + (transform.up * 2), Quaternion.identity);
                     BulletInformation bulletInfo = myBullet.GetComponent<BulletInformation>();
@@ -254,6 +266,7 @@ public class PlayerBehaviour : MonoBehaviour
             }
             else if (currentWeapon == Weapon.Shotgun)
             {
+                anim.SetTrigger("shoot");
                 int shotgunBulletAmount = 6; //This number needs to be dividable with 3, eg 3, 6, 9 etc.
                 float spreadFactor = 0.09f;
                 if (shotgunMagazineAmmunition > 0)
@@ -276,6 +289,12 @@ public class PlayerBehaviour : MonoBehaviour
                     print("No more shotgun ammuniton in magazine");
                 }
             }
+            else
+            {
+                anim.SetTrigger("melee");
+                SwingKnife();
+                yield return new WaitForSeconds(wc.knifeCD);
+            }
         }
     }
 
@@ -285,9 +304,15 @@ public class PlayerBehaviour : MonoBehaviour
         {
             if (currentWeapon == Weapon.Knife)
             {
-                Collider2D hitArea = new BoxCollider2D ();
-                hitArea = Physics2D.OverlapBox(gameObject.transform.position + gameObject.transform.forward, new Vector2(2f, 2f), 0f);
-                
+                Collider2D hitArea = new Collider2D();
+                hitArea = Physics2D.OverlapBox(gameObject.transform.position + (gameObject.transform.up * 2f), new Vector2(0.5f, 0.5f), 0f);
+
+                if (hitArea != null && hitArea.gameObject.tag.Equals("Player"))
+                {
+                    PlayerBehaviour target = hitArea.gameObject.GetComponent<PlayerBehaviour>();
+                    target.TakeDamage(wc.knifeDamage);
+                }
+
             }
         }
     }
