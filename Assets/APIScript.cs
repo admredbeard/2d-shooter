@@ -4,12 +4,21 @@ using UnityEngine;
 
 public class APIScript : MonoBehaviour
 {
+    public int teamId;
     MapBehavior mb;
     GameController gc;
     void Start()
     {
         mb = GameObject.Find("MapController").GetComponent<MapBehavior>();
-        gc = GameObject.Find("GameController").GetComponent<GameController> ();
+        gc = GameObject.Find("GameController").GetComponent<GameController>();
+    }
+
+    private bool CheckIfCorrectTeam(int unitId)
+    {
+        if (gc.GetPlayerBehaviours()[unitId].GetTeam() == teamId)
+            return true;
+        else
+            return false;
     }
 
     public void Move(int unitId, float angle)
@@ -27,19 +36,16 @@ public class APIScript : MonoBehaviour
         //target must be within our vision
     }
 
-    public List<GameObject> SenseNearby(int unitId)
+    public List<int> SenseNearby(int unitId)
     {
         //Unit must be on your team
-        List<GameObject> nearbyUnits = new List<GameObject>();
-
+        List<int> nearbyUnits = gc.UnitsInVision(unitId);
         return nearbyUnits;
     }
 
-    public List<GameObject> SenseNearbyByTeam(int unitId, int team)
+    public List<int> SenseNearbyByTeam(int unitId, int team)
     {
-        //Unit must be on your team
-        List<GameObject> nearbyUnits = new List<GameObject>();
-
+        List<int> nearbyUnits = gc.UnitsInVisionByTeam(unitId, team);
         return nearbyUnits;
     }
 
@@ -80,49 +86,115 @@ public class APIScript : MonoBehaviour
         //Unit must be on your team
         return mb.GridPositionInSight(unitId, gridPosition);
     }
-
+    
     public void Attack(int unitId)
     {
-        PlayerBehaviour player = gc.GetPlayerBehaviours()[unitId];
-        StartCoroutine(player.FireWeapon());
+        if (CheckIfCorrectTeam(unitId))
+        {
+            PlayerBehaviour player = gc.GetPlayerBehaviours()[unitId];
+            StartCoroutine(player.FireWeapon());
+        }
+        else
+            throw new System.UnauthorizedAccessException("Error: Can not attack using enemy unit");
     }
 
     public void SwapWeapon(int unitId, Weapon newWeapon)
     {
-        PlayerBehaviour player = gc.GetPlayerBehaviours()[unitId];
-        StartCoroutine(player.ChangeWeapon(newWeapon));
-        //Unit must be on your team
+        if (CheckIfCorrectTeam(unitId))
+        {
+            PlayerBehaviour player = gc.GetPlayerBehaviours()[unitId];
+            StartCoroutine(player.ChangeWeapon(newWeapon));
+        }
+        else
+            throw new System.UnauthorizedAccessException("Error: Can not swap enemy weapon ");
     }
 
     public void ReloadWeapon(int unitId)
     {
-        PlayerBehaviour player = gc.GetPlayerBehaviours()[unitId];
-        StartCoroutine(player.ReloadWeapon());
+        if (CheckIfCorrectTeam(unitId))
+        {
+            PlayerBehaviour player = gc.GetPlayerBehaviours()[unitId];
+            StartCoroutine(player.ReloadWeapon());
+        }
+        else
+            throw new System.UnauthorizedAccessException("Error: Can not access reload enemy weapon ");
     }
-
     public int GetReserveAmmunition(int unitId, Weapon weapon)
     {
-        PlayerBehaviour player = gc.GetPlayerBehaviours()[unitId];
-        return player.GetReserveAmmunition(weapon);
+        if (CheckIfCorrectTeam(unitId))
+        {
+            PlayerBehaviour player = gc.GetPlayerBehaviours()[unitId];
+            return player.GetReserveAmmunition(weapon);
+        }
+
+        throw new System.UnauthorizedAccessException("Error: Can not access enemy reserve ammunition");
     }
 
     public int GetMagazineAmmunition(int unitId, Weapon weapon)
     {
-        //Unit must be on your team
-        PlayerBehaviour player = gc.GetPlayerBehaviours()[unitId];
-        return player.GetMagazineAmmunition(weapon);
+        if (CheckIfCorrectTeam(unitId))
+        {
+            PlayerBehaviour player = gc.GetPlayerBehaviours()[unitId];
+            return player.GetMagazineAmmunition(weapon);
+        }
+        throw new System.UnauthorizedAccessException("Error: Can not access enemy magazine ammunition");
     }
 
     public Weapon GetWeapon(int unitId)
     {
-        PlayerBehaviour player = gc.GetPlayerBehaviours()[unitId];
-        return player.GetWeapon();
+        if (CheckIfCorrectTeam(unitId))
+        {
+            PlayerBehaviour player = gc.GetPlayerBehaviours()[unitId];
+            return player.GetWeapon();
+        }
+        throw new System.UnauthorizedAccessException("Error: Can not access enemy Weapon");
     }
 
     public float GetHealth(int unitId)
     {
+        List<PlayerBehaviour> list = gc.GetPlayerBehaviours();
+        print(list.Count);
         PlayerBehaviour player = gc.GetPlayerBehaviours()[unitId];
         return player.GetHealth();
+    }
+
+    public bool CanFire(int unitId)
+    {
+        if (CheckIfCorrectTeam(unitId))
+        {
+            if (gc.GetPlayerBehaviours()[unitId].CanFire())
+                return true;
+            else
+                return false;
+        }
+        else
+            throw new System.UnauthorizedAccessException("Error: Can not access enemy fire eligibility");
+    }
+
+    public float FireCooldown(int unitId)
+    {
+        if (CheckIfCorrectTeam(unitId))
+            return gc.GetPlayerBehaviours()[unitId].GetFireCd();
+        else
+            throw new System.UnauthorizedAccessException("Error: Can not access enemy fire cooldown");
+    }
+
+    public float ReloadCooldown(int unitId)
+    {
+        if (CheckIfCorrectTeam(unitId))
+            return gc.GetPlayerBehaviours()[unitId].GetReloadCD();
+        else
+            throw new System.UnauthorizedAccessException("Error: Can not reload enemy weapon");
+    }
+
+    public float WeaponSwapCooldown(int unitId)
+    {
+        {
+            if (CheckIfCorrectTeam(unitId))
+                return gc.GetPlayerBehaviours()[unitId].GetWeaponSwapCD();
+            else
+                return 1f;
+        }
     }
 
     public bool IsGridPositionTraversable(Vector2Int gridPosition)
@@ -143,7 +215,7 @@ public class APIScript : MonoBehaviour
     public float GetDistanceToUnit(int unitId, int targetId)
     {
         //Unit must be in vision range or in our team
-        return mb.DistanceToUnit(unitId,targetId);
+        return mb.DistanceToUnit(unitId, targetId);
     }
 
     public float GetDistanceToGridPosition(int unitId, Vector2Int gridPosition)

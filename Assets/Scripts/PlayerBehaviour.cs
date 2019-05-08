@@ -5,14 +5,26 @@ using UnityEngine.UI;
 
 public class PlayerBehaviour : MonoBehaviour
 {
-
+    GameObject visionSphere;
+    APIScript api;
     void Start()
     {
         wc = GameObject.Find("Bullets").GetComponent<WeaponBehaviour>();
+        visionSphere = transform.GetChild(1).gameObject;
+        visionSphere.transform.localScale = new Vector3(visionRange * 2, visionRange * 2, 0.01f);
+        api = GameObject.Find("Team1API").GetComponent<APIScript>();
         anim = GetComponentInChildren<Animator>();
+        StartCoroutine(Timers());
         ResetStats();
 
     }
+    void FixedUpdate()
+    {
+        List<int> list = api.SenseNearbyByTeam(id, -GetTeam());
+        if (list.Count > 0)
+            print(list.Count);
+    }
+
     Animator anim;
     public float visionRange = 10f;
     private float health = 0f;
@@ -27,6 +39,10 @@ public class PlayerBehaviour : MonoBehaviour
     private int rifleMagazineAmmunition = 0;
     private int pistolMagazineAmmunition = 0;
     private int shotgunMagazineAmmunition = 0;
+    private float reloadTimer = 0f;
+    private float fireCD = 0f;
+    private float weaponSwapTimer = 0f;
+
     [System.NonSerialized]
     public bool fired = false;
     [System.NonSerialized]
@@ -75,6 +91,29 @@ public class PlayerBehaviour : MonoBehaviour
     public void SetID(int id)
     {
         this.id = id;
+    }
+
+    public float GetReloadCD()
+    {
+        return reloadTimer;
+    }
+
+    public float GetFireCd()
+    {
+        return fireCD;
+    }
+
+    public float GetWeaponSwapCD()
+    {
+        return weaponSwapTimer;
+    }
+
+    public bool CanFire()
+    {
+        if (GetMagazineAmmunition(currentWeapon) > 0 && !fired && !reloading && !weaponSwap)
+            return true;
+        else
+            return false;
     }
 
     // Gets the team of a unit.
@@ -146,6 +185,7 @@ public class PlayerBehaviour : MonoBehaviour
                 anim.SetTrigger("shotgun");
             else
                 anim.SetTrigger("knife");
+            weaponSwapTimer = wc.reloadTime;
             yield return new WaitForSeconds(wc.reloadTime);
             weaponSwap = false;
         }
@@ -154,11 +194,15 @@ public class PlayerBehaviour : MonoBehaviour
     public IEnumerator ReloadWeapon()
     {
         if (currentWeapon != Weapon.Knife)
+        {
+            anim.SetTrigger("reload");
+            reloadTimer = wc.reloadTime;
             yield return new WaitForSeconds(wc.reloadTime);
+        }
 
         if (!weaponSwap && !reloading && !fired && currentWeapon != Weapon.Knife)
         {
-            anim.SetTrigger("reload");
+
             if (currentWeapon == Weapon.Rifle)
             {
                 if (rifleAmmunition > wc.rifleMagazineSize)
@@ -236,6 +280,7 @@ public class PlayerBehaviour : MonoBehaviour
                     bulletInfo.InitiateBullet(wc.rifleDamage, wc.rifleBulletSpeed, transform.up, gameObject, wc.rifleBulletRange);
 
                     rifleMagazineAmmunition -= 1;
+                    fireCD = wc.rifleCD;
                     yield return new WaitForSeconds(wc.rifleCD);
                     fired = false;
                 }
@@ -255,6 +300,7 @@ public class PlayerBehaviour : MonoBehaviour
                     bulletInfo.InitiateBullet(wc.pistolDamage, wc.pistolBulletSpeed, transform.up, gameObject, wc.pistolBulletRange);
 
                     pistolMagazineAmmunition -= 1;
+                    fireCD = wc.pistolCD;
                     yield return new WaitForSeconds(wc.pistolCD);
                     fired = false;
                 }
@@ -281,6 +327,7 @@ public class PlayerBehaviour : MonoBehaviour
                     }
 
                     shotgunMagazineAmmunition -= 1;
+                    fireCD = wc.shotgunCD;
                     yield return new WaitForSeconds(wc.shotgunCD);
                     fired = false;
                 }
@@ -293,6 +340,7 @@ public class PlayerBehaviour : MonoBehaviour
             {
                 anim.SetTrigger("melee");
                 SwingKnife();
+                fireCD = wc.knifeCD;
                 yield return new WaitForSeconds(wc.knifeCD);
             }
         }
@@ -327,6 +375,20 @@ public class PlayerBehaviour : MonoBehaviour
             bulletDirs[i] = direction + new Vector3(x, y, 0f);
         }
         return bulletDirs;
+    }
+
+    IEnumerator Timers()
+    {
+        float step = 0.033f;
+        while (true)
+        {
+
+            fireCD -= step;
+            weaponSwapTimer -= step;
+            reloadTimer -= step;
+
+            yield return new WaitForSeconds(step);
+        }
     }
 }
 

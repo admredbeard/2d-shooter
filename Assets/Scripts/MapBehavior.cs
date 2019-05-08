@@ -46,12 +46,14 @@ public class MapBehavior : MonoBehaviour
 
     void InitEditor()
     {
-        Ground = Instantiate(new GameObject(), this.transform);
+        GameObject temp = new GameObject();
+        Ground = Instantiate(temp, this.transform);
         Ground.name = "Ground";
-        Obstacles = Instantiate(new GameObject(), this.transform);
+        Obstacles = Instantiate(temp, this.transform);
         Obstacles.name = "Obstacles";
-        Walls = Instantiate(new GameObject(), this.transform);
+        Walls = Instantiate(temp, this.transform);
         Walls.name = "Walls";
+        Destroy(temp);
     }
 
     void GenerateMap()
