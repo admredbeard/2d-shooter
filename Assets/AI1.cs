@@ -27,8 +27,8 @@ public class AI1 : MonoBehaviour
         //diff.Normalize();
         float angletest = Vector2.SignedAngle(Vector2.right, diff);
         
-        //api.Move(aplayerID, angletest);
-        api.MoveAddforce(aplayerID, angletest);
+        api.Move(aplayerID, angletest);
+        //api.MoveAddforce(aplayerID, angletest);
         //}
     }
 }
