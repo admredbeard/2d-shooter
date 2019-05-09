@@ -23,6 +23,39 @@ public class APIScript : MonoBehaviour
 
     public void Move(int unitId, float angle)
     {
+        if(CheckIfCorrectTeam(unitId)){
+            //do move
+            float speed = 5f;
+            float distance = 5f;
+            Rigidbody2D rb = gc.GetPlayerBehaviours()[unitId].GetComponent<Rigidbody2D>();
+            RaycastHit2D[] hit = new RaycastHit2D[2];
+            Vector2 velocity = (Vector2)(Quaternion.AngleAxis(angle, Vector3.forward) * Vector3.right);
+            
+            int results = rb.Cast(velocity.normalized, hit, speed*Time.fixedDeltaTime*2);
+            if(results > 0){
+                distance = 0;
+            }else if(results == 0){
+                distance = speed*Time.fixedDeltaTime;
+            }
+            rb.MovePosition(rb.position + velocity.normalized*distance);
+        }else{
+            throw new System.UnauthorizedAccessException("Error: Can not move opponents units");
+        }
+        //Unit must be on our team
+    }
+
+    public void MoveAddforce(int unitId, float angle)
+    {
+        if(CheckIfCorrectTeam(unitId)){
+            //do move
+            Rigidbody2D rb = gc.GetPlayerBehaviours()[unitId].GetComponent<Rigidbody2D>();
+            Vector3 test = Quaternion.AngleAxis(angle, Vector3.forward) * Vector3.right;
+            Vector2 vel = new Vector2(test.x,test.y);
+            Debug.Log(angle);
+            rb.AddForce(vel*20);
+        }else{
+            throw new System.UnauthorizedAccessException("Error: Can not move opponents units");
+        }
         //Unit must be on our team
     }
 
