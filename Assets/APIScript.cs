@@ -48,11 +48,10 @@ public class APIScript : MonoBehaviour
     {
         if(CheckIfCorrectTeam(unitId)){
             //do move
+            float movementSpeed = 20f;
             Rigidbody2D rb = gc.GetPlayerBehaviours()[unitId].GetComponent<Rigidbody2D>();
-            Vector3 test = Quaternion.AngleAxis(angle, Vector3.forward) * Vector3.right;
-            Vector2 vel = new Vector2(test.x,test.y);
-            Debug.Log(angle);
-            rb.AddForce(vel*20);
+            Vector2 velocity = (Vector2)(Quaternion.AngleAxis(angle, Vector3.forward) * Vector3.right);
+            rb.AddForce(velocity * movementSpeed);
         }else{
             throw new System.UnauthorizedAccessException("Error: Can not move opponents units");
         }
@@ -61,6 +60,13 @@ public class APIScript : MonoBehaviour
 
     public void LookAtDirection(int unitId, float angle)
     {
+        if(CheckIfCorrectTeam(unitId)){
+            //do rotate
+            Rigidbody2D rb = gc.GetPlayerBehaviours()[unitId].GetComponent<Rigidbody2D>();
+            rb.transform.rotation = Quaternion.Euler(0f, 0f, angle - 90);
+        }else{
+            throw new System.UnauthorizedAccessException("Error: Can not move opponents units");
+        }
         //Unit must be on your team
     }
 
