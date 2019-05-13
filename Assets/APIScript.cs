@@ -62,8 +62,9 @@ public class APIScript : MonoBehaviour
     {
         if(CheckIfCorrectTeam(unitId)){
             //do rotate
+            float offset = 90f; //change this to make the gun point towards where we shoot and stuff
             Rigidbody2D rb = gc.GetPlayerBehaviours()[unitId].GetComponent<Rigidbody2D>();
-            rb.transform.rotation = Quaternion.Euler(0f, 0f, angle - 90);
+            rb.transform.rotation = Quaternion.Euler(0f, 0f, angle - offset);
         }else{
             throw new System.UnauthorizedAccessException("Error: Can not move opponents units");
         }
