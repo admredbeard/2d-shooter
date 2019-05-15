@@ -7,6 +7,7 @@ public class APIScript : MonoBehaviour
     public int teamId;
     MapBehavior mb;
     GameController gc;
+    float visionRange = 20f;
     void Start()
     {
         mb = GameObject.Find("MapController").GetComponent<MapBehavior>();
@@ -19,6 +20,19 @@ public class APIScript : MonoBehaviour
             return true;
         else
             return false;
+    }
+
+    private bool CheckIfInVision(int unitId)
+    {
+        GameObject enemy = gc.GetPlayers()[unitId];
+        List<int> teamUnits = GetPlayers(teamId);
+        foreach (int unit in teamUnits)
+        {
+            GameObject player = gc.GetPlayers()[unit];
+            if (Vector3.Distance(player.transform.position, enemy.transform.position) <= visionRange)
+                return true;
+        }
+        return false;
     }
 
     public void Move(int unitId, float angle)
@@ -54,9 +68,9 @@ public class APIScript : MonoBehaviour
         //Unit must be on your team
     }
 
-    public void AngleBetween(int unitId, int targetId)
+    public float AngleBetween(int unitId, int targetId)
     {
-        //target must be within our vision
+        return 0f;
     }
 
     public List<int> SenseNearby(int unitId)
@@ -72,19 +86,25 @@ public class APIScript : MonoBehaviour
         return nearbyUnits;
     }
 
-    public List<int> GetPlayers(int teamId)
+    public List<int> GetPlayers(int myTeamId)
     {
-
-        List<int> ids = new List<int>();
-
-        List<PlayerBehaviour> players = gc.GetPlayerBehaviours();
-        foreach (PlayerBehaviour player in players)
+        if (myTeamId == teamId)
         {
-            if (player.GetTeam() == teamId)
-                ids.Add(player.GetID());
-        }
+            List<int> ids = new List<int>();
 
-        return ids;
+            List<PlayerBehaviour> players = gc.GetPlayerBehaviours();
+            foreach (PlayerBehaviour player in players)
+            {
+                if (player.GetTeam() == teamId)
+                    ids.Add(player.GetID());
+            }
+
+            return ids;
+        }
+        else
+        {
+            throw new System.UnauthorizedAccessException("Error: Can not access other teams players");
+        }
     }
 
     public List<int> GetTeammates(int unitId)
@@ -112,32 +132,45 @@ public class APIScript : MonoBehaviour
 
     public Vector2 GetWorldPosition(int unitId)
     {
-        //Unit must be in vision range or in our team
-        return mb.GetWorldPos(unitId);
+        if (CheckIfCorrectTeam(unitId) || CheckIfInVision(unitId))
+            return mb.GetWorldPos(unitId);
+        else
+            throw new System.UnauthorizedAccessException("Error: Unit not in vision");
     }
 
     public Vector2Int GetGridPos(int unitId)
     {
-        //Unit must be in vision range or in our team
-        return mb.GetGridPos(unitId);
+        if (CheckIfCorrectTeam(unitId) || CheckIfInVision(unitId))
+            return mb.GetGridPos(unitId);
+        else
+            throw new System.UnauthorizedAccessException("Error: Unit not in vision");
     }
 
     public bool TargetInSight(int unitId, int targetId)
     {
-        //Unit must be on your team
-        return mb.TargetInSight(unitId, targetId);
+        if (CheckIfCorrectTeam(targetId) || CheckIfInVision(targetId))
+            return mb.TargetInSight(unitId, targetId);
+        else
+            throw new System.UnauthorizedAccessException("Error: Unit not in vision");
+
     }
 
     public bool WorldPositionInSight(int unitId, Vector2 worldPosition)
     {
-        //Unit must be on your team
-        return mb.WorldPositionInSight(unitId, worldPosition);
+        if (CheckIfCorrectTeam(unitId))
+            return mb.WorldPositionInSight(unitId, worldPosition);
+        else
+            throw new System.UnauthorizedAccessException("Error: Unit must on your team");
     }
 
     public bool GridPositionInSight(int unitId, Vector2Int gridPosition)
     {
         //Unit must be on your team
-        return mb.GridPositionInSight(unitId, gridPosition);
+        if (CheckIfCorrectTeam(unitId))
+            return mb.GridPositionInSight(unitId, gridPosition);
+        else
+            throw new System.UnauthorizedAccessException("Error: Unit must on your team");
+        
     }
 
     public void Attack(int unitId)
@@ -205,10 +238,14 @@ public class APIScript : MonoBehaviour
 
     public float GetHealth(int unitId)
     {
-        List<PlayerBehaviour> list = gc.GetPlayerBehaviours();
-        print(list.Count);
-        PlayerBehaviour player = gc.GetPlayerBehaviours()[unitId];
-        return player.GetHealth();
+        if(CheckIfInVision(unitId)){
+            List<PlayerBehaviour> list = gc.GetPlayerBehaviours();
+            print(list.Count);
+            PlayerBehaviour player = gc.GetPlayerBehaviours()[unitId];
+            return player.GetHealth();
+        }
+        else
+            throw new System.UnauthorizedAccessException("Error: Can not access enemy health, not in vision");
     }
 
     public bool CanFire(int unitId)
@@ -242,12 +279,10 @@ public class APIScript : MonoBehaviour
 
     public float WeaponSwapCooldown(int unitId)
     {
-        {
-            if (CheckIfCorrectTeam(unitId))
-                return gc.GetPlayerBehaviours()[unitId].GetWeaponSwapCD();
-            else
-                return 1f;
-        }
+        if (CheckIfCorrectTeam(unitId))
+            return gc.GetPlayerBehaviours()[unitId].GetWeaponSwapCD();
+        else
+            return 1f;
     }
 
     public bool IsGridPositionTraversable(Vector2Int gridPosition)
@@ -267,38 +302,64 @@ public class APIScript : MonoBehaviour
 
     public float GetDistanceToUnit(int unitId, int targetId)
     {
-        //Unit must be in vision range or in our team
-        return mb.DistanceToUnit(unitId, targetId);
+        if (CheckIfCorrectTeam(unitId) || CheckIfInVision(unitId))
+            return mb.DistanceToUnit(unitId, targetId);
+        else
+            throw new System.UnauthorizedAccessException("Error: Unit must be in Vision");
     }
 
     public float GetDistanceToGridPosition(int unitId, Vector2Int gridPosition)
     {
-        //Unit must be in vision range or in our team
-        return mb.DistanceToGridPos(unitId, gridPosition);
+        if (CheckIfCorrectTeam(unitId))
+            return mb.DistanceToGridPos(unitId, gridPosition);
+        else
+            throw new System.UnauthorizedAccessException("Error: Unit must on your team");
     }
 
     public float GetDistanceToWorldPosition(int unitId, Vector2 worldPosition)
     {
-        //Unit must be in vision range or in our team
-        return mb.DistanceToWorldPos(unitId, worldPosition);
+        if (CheckIfCorrectTeam(unitId))
+            return mb.DistanceToWorldPos(unitId, worldPosition);
+        else
+            throw new System.UnauthorizedAccessException("Error: Unit must on your team");
     }
 
     public bool IsUnitInZone(int unitId)
     {
-        //Unit must be in vision range or in our team
-        return mb.IsUnitInZone(unitId);
+        if (CheckIfCorrectTeam(unitId) || CheckIfInVision(unitId))
+            return mb.IsUnitInZone(unitId);
+        else
+            throw new System.UnauthorizedAccessException("Error: Unit must be in Vision");
     }
 
     public bool IsWorldPosInZone(Vector2 worldPos)
     {
-        //Unit must be in vision range or in our team
         return mb.IsWorldPosInZone(worldPos);
     }
 
     public bool IsGridPosInZone(Vector2Int gridPos)
     {
-        //Unit must be in vision range or in our team
         return mb.IsGridPosInZone(gridPos);
+    }
+
+    public int GetMapSize()
+    {
+        return mb.GetMapSize();
+    }
+
+    public Vector2Int GetGridPosFromWorldPos(Vector2 worldPos)
+    {
+        return mb.GetGridPosFromWorldPos(worldPos);
+    }
+
+    public Vector2 GetWorldPosFromGridPos(Vector2Int gridIndex)
+    {
+        return mb.GetGridPosFromWorldPos(gridIndex);
+    }
+
+    public Vector2 GetWorldPosFromGridPos(int x, int y)
+    {
+        return mb.GetWorldPosFromGridPos(x, y);
     }
 
 }
