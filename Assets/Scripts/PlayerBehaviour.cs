@@ -25,7 +25,7 @@ public class PlayerBehaviour : MonoBehaviour
 
     Animator anim;
     public float visionRange = 10f;
-    public float health = 0f;
+    private float health = 0f;
     public float maxHealth = 100f;
     private int id = -1; // Should be private, use getters, this is only for debug
     private int team = 0; // Should be private, use getters, this is only for debug
