@@ -14,20 +14,18 @@ public class PlayerBehaviour : MonoBehaviour
         visionSphere.transform.localScale = new Vector3(visionRange * 2, visionRange * 2, 0.01f);
         api = GameObject.Find("Team1Controller").GetComponent<APIScript>();
         anim = GetComponentInChildren<Animator>();
+        gc = GameObject.Find("GameController").GetComponent<GameController> ();
         StartCoroutine(Timers());
         ResetStats();
-
     }
-    void FixedUpdate()
-    {
-        List<int> list = api.SenseNearbyByTeam(id, -GetTeam());
-        if (list.Count > 0)
-            print(list.Count);
+
+    void Update(){
+        TakeDamage(0);
     }
 
     Animator anim;
     public float visionRange = 10f;
-    private float health = 0f;
+    public float health = 0f;
     public float maxHealth = 100f;
     private int id = -1; // Should be private, use getters, this is only for debug
     private int team = 0; // Should be private, use getters, this is only for debug
@@ -132,6 +130,12 @@ public class PlayerBehaviour : MonoBehaviour
     public void TakeDamage(float damage)
     {
         health -= damage;
+
+        if (health <= 0)
+        {
+            gc.Respawn(GetID(), GetTeam());
+            ResetStats();
+        }
     }
 
     public void ResetStats()

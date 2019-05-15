@@ -14,17 +14,6 @@ public class GameController : MonoBehaviour
         StartCoroutine("ZoneHandler");
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        for (int i = 0; i < players.Count; i++)
-        {
-            if (players[i].GetComponent<PlayerBehaviour>().GetHealth() < 0)
-            {
-                Respawn(i);
-            }
-        }
-    }
     public int teamCount;
     public int teamSize;
     public GameObject playerTeam1Prefab;
@@ -202,13 +191,18 @@ public class GameController : MonoBehaviour
         return spawnPos;
     }
 
-    private void Respawn(int unitID)
+    public void Respawn(int unitID, int teamId)
     {
 
         Vector2 spawnPos = GetRespawnPos(unitID);
 
         players[unitID].transform.position = spawnPos;
-        players[unitID].GetComponent<PlayerBehaviour>().ResetStats();
+        //players[unitID].GetComponent<PlayerBehaviour>().ResetStats();
+
+        if(teamId == 1)
+            GiveScoreToTeamTwo(5);
+        else
+            GiveScoreToTeamOne(5);
     }
 
     private Vector3 GetRandomZonePosition()

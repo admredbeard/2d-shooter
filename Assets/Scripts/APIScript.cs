@@ -23,11 +23,34 @@ public class APIScript : MonoBehaviour
 
     public void Move(int unitId, float angle)
     {
+        if (CheckIfCorrectTeam(unitId))
+        {
+            //do move
+            float movementSpeed = 20f;
+            Rigidbody2D rb = gc.GetPlayerBehaviours()[unitId].GetComponent<Rigidbody2D>();
+            Vector2 velocity = (Vector2)(Quaternion.AngleAxis(angle, Vector3.forward) * Vector3.right);
+            rb.AddForce(velocity * movementSpeed);
+        }
+        else
+        {
+            throw new System.UnauthorizedAccessException("Error: Can not move opponents units");
+        }
         //Unit must be on our team
     }
 
     public void LookAtDirection(int unitId, float angle)
     {
+        if (CheckIfCorrectTeam(unitId))
+        {
+            //do rotate
+            float offset = 90f; //change this to make the gun point towards where we shoot and stuff
+            Rigidbody2D rb = gc.GetPlayerBehaviours()[unitId].GetComponent<Rigidbody2D>();
+            rb.transform.rotation = Quaternion.Euler(0f, 0f, angle - offset);
+        }
+        else
+        {
+            throw new System.UnauthorizedAccessException("Error: Can not move opponents units");
+        }
         //Unit must be on your team
     }
 
@@ -49,12 +72,42 @@ public class APIScript : MonoBehaviour
         return nearbyUnits;
     }
 
-    public List<GameObject> GetTeammates(int unitId)
+    public List<int> GetPlayers(int teamId)
     {
-        //Unit must be on your team
-        List<GameObject> teammates = new List<GameObject>();
 
-        return teammates;
+        List<int> ids = new List<int>();
+
+        List<PlayerBehaviour> players = gc.GetPlayerBehaviours();
+        foreach (PlayerBehaviour player in players)
+        {
+            if (player.GetTeam() == teamId)
+                ids.Add(player.GetID());
+        }
+
+        return ids;
+    }
+
+    public List<int> GetTeammates(int unitId)
+    {
+        if (CheckIfCorrectTeam(unitId))
+        {
+            List<int> teammates = new List<int>();
+            int myTeam = gc.GetPlayerBehaviours()[unitId].GetTeam();
+            List<PlayerBehaviour> players = gc.GetPlayerBehaviours();
+
+            foreach (PlayerBehaviour player in players)
+            {
+                if (player.GetTeam() == myTeam && player.GetID() != unitId)
+                    teammates.Add(player.GetID());
+            }
+
+            return teammates;
+        }
+        else
+        {
+            throw new System.UnauthorizedAccessException("Error: Can not access other teams players");
+        }
+
     }
 
     public Vector2 GetWorldPosition(int unitId)
@@ -86,7 +139,7 @@ public class APIScript : MonoBehaviour
         //Unit must be on your team
         return mb.GridPositionInSight(unitId, gridPosition);
     }
-    
+
     public void Attack(int unitId)
     {
         if (CheckIfCorrectTeam(unitId))
