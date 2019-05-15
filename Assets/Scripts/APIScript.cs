@@ -68,9 +68,19 @@ public class APIScript : MonoBehaviour
         //Unit must be on your team
     }
 
-    public float AngleBetween(int unitId, int targetId)
+    public float AngleBetweenUnits(int unitId, int targetId)
     {
-        return 0f;
+        return mb.AngleBetweenUnits(unitId, targetId);
+    }
+
+    public float AngleBetweenUnitWorldpos(int unitId, int targetId)
+    {
+        return mb.AngleBetweenUnitWorldpos(unitId, targetId);
+    }
+
+    public float AngleBetweenUnitGridpos(int unitId, int targetId)
+    {
+        return mb.AngleBetweenUnitGridpos(unitId, targetId);
     }
 
     public List<int> SenseNearby(int unitId)
@@ -240,7 +250,6 @@ public class APIScript : MonoBehaviour
     {
         if(CheckIfInVision(unitId)){
             List<PlayerBehaviour> list = gc.GetPlayerBehaviours();
-            print(list.Count);
             PlayerBehaviour player = gc.GetPlayerBehaviours()[unitId];
             return player.GetHealth();
         }
@@ -346,20 +355,33 @@ public class APIScript : MonoBehaviour
     {
         return mb.GetMapSize();
     }
-
+    
     public Vector2Int GetGridPosFromWorldPos(Vector2 worldPos)
     {
+        // NOT IMPLEMENTED YET
         return mb.GetGridPosFromWorldPos(worldPos);
     }
 
     public Vector2 GetWorldPosFromGridPos(Vector2Int gridIndex)
     {
+        // NOT IMPLEMENTED YET
         return mb.GetGridPosFromWorldPos(gridIndex);
     }
 
     public Vector2 GetWorldPosFromGridPos(int x, int y)
     {
+        // NOT IMPLEMENTED YET
         return mb.GetWorldPosFromGridPos(x, y);
+    }
+
+    public int GetOurTeamScore()
+    {
+        return gc.GetTeamScore(teamId);
+    }
+
+    public int GetEnemyTeamScore()
+    {
+        return gc.GetTeamScore(teamId*-1);
     }
 
 }

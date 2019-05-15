@@ -45,6 +45,18 @@ public class GameController : MonoBehaviour
         return team2Score;
     }
 
+    public int GetTeamScore(int teamID)
+    {
+        if(teamID == 1)
+        {
+            return GetTeamOneScore();
+        }
+        else
+        {
+            return GetTeamTwoScore();
+        }
+    }
+
     public float GetHp(int unitID)
     {
 
