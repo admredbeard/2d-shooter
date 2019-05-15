@@ -9,7 +9,7 @@ public class BulletInformation : MonoBehaviour
     //Vector3 direction = Vector3.zero;
     public void InitiateBullet(float bulletDamage, float speed, Vector3 direction, GameObject attacker, float bulletLifeTime)
     {
-        damage = bulletDamage;
+        Damage = bulletDamage;
         lifeTime = bulletLifeTime;
         transform.parent = GameObject.Find("Bullets").transform;
         attackerObject = attacker;
@@ -32,7 +32,7 @@ public class BulletInformation : MonoBehaviour
         {
             PlayerBehaviour player = target.GetComponent<PlayerBehaviour>();
 
-            if (target.tag.Equals("Player") && player != null && target.name != attackerObject.name)
+            if (target.tag.Equals("Player") && player != null && target != attackerObject)
             {
                 player.TakeDamage(damage);
                 print("Damage");

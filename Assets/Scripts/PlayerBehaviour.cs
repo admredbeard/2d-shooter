@@ -1,30 +1,46 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerBehaviour : MonoBehaviour
 {
-
+    GameObject visionSphere;
+    APIScript api;
     void Start()
     {
         wc = GameObject.Find("Bullets").GetComponent<WeaponBehaviour>();
+        visionSphere = transform.GetChild(1).gameObject;
+        visionSphere.transform.localScale = new Vector3(visionRange * 2, visionRange * 2, 0.01f);
+        api = GameObject.Find("Team1Controller").GetComponent<APIScript>();
+        anim = GetComponentInChildren<Animator>();
+        gc = GameObject.Find("GameController").GetComponent<GameController> ();
+        StartCoroutine(Timers());
         ResetStats();
-
     }
 
+    void Update(){
+        TakeDamage(0);
+    }
+
+    Animator anim;
     public float visionRange = 10f;
-    public float health = 0f;
+    private float health = 0f;
     public float maxHealth = 100f;
-    public int id = -1; // Should be private, use getters, this is only for debug
-    public int team = 0; // Should be private, use getters, this is only for debug
+    private int id = -1; // Should be private, use getters, this is only for debug
+    private int team = 0; // Should be private, use getters, this is only for debug
     WeaponBehaviour wc;
     GameController gc;
-    private float rifleAmmunition = 0f;
-    private float pistolAmmunition = 0f;
-    private float shotgunAmmunition = 0f;
-    private float rifleMagazineAmmunition = 0f;
-    private float pistolMagazineAmmunition = 0f;
-    private float shotgunMagazineAmmunition = 0f;
+    private int rifleAmmunition = 0;
+    private int pistolAmmunition = 0;
+    private int shotgunAmmunition = 0;
+    private int rifleMagazineAmmunition = 0;
+    private int pistolMagazineAmmunition = 0;
+    private int shotgunMagazineAmmunition = 0;
+    private float reloadTimer = 0f;
+    private float fireCD = 0f;
+    private float weaponSwapTimer = 0f;
+
     [System.NonSerialized]
     public bool fired = false;
     [System.NonSerialized]
@@ -45,10 +61,57 @@ public class PlayerBehaviour : MonoBehaviour
         return id;
     }
 
+    public int GetReserveAmmunition(Weapon weapon)
+    {
+        if (weapon == Weapon.Rifle)
+            return rifleAmmunition;
+        else if (weapon == Weapon.Pistol)
+            return pistolAmmunition;
+        else if (weapon == Weapon.Shotgun)
+            return shotgunAmmunition;
+        else
+            return 0;
+    }
+
+    public int GetMagazineAmmunition(Weapon weapon)
+    {
+        if (weapon == Weapon.Rifle)
+            return rifleMagazineAmmunition;
+        else if (weapon == Weapon.Pistol)
+            return pistolMagazineAmmunition;
+        else if (weapon == Weapon.Shotgun)
+            return shotgunMagazineAmmunition;
+        else
+            return 0;
+    }
+
     // Sets the id of a unit.
     public void SetID(int id)
     {
         this.id = id;
+    }
+
+    public float GetReloadCD()
+    {
+        return reloadTimer;
+    }
+
+    public float GetFireCd()
+    {
+        return fireCD;
+    }
+
+    public float GetWeaponSwapCD()
+    {
+        return weaponSwapTimer;
+    }
+
+    public bool CanFire()
+    {
+        if (GetMagazineAmmunition(currentWeapon) > 0 && !fired && !reloading && !weaponSwap)
+            return true;
+        else
+            return false;
     }
 
     // Gets the team of a unit.
@@ -67,9 +130,16 @@ public class PlayerBehaviour : MonoBehaviour
     public void TakeDamage(float damage)
     {
         health -= damage;
+
+        if (health <= 0)
+        {
+            gc.Respawn(GetID(), GetTeam());
+            ResetStats();
+        }
     }
 
-    public void ResetStats() {
+    public void ResetStats()
+    {
         health = maxHealth;
         rifleAmmunition = wc.startRifleAmmunition - wc.rifleMagazineSize;
         shotgunAmmunition = wc.startShotgunAmmunition - wc.shotgunMagazineSize;
@@ -89,15 +159,15 @@ public class PlayerBehaviour : MonoBehaviour
     {
         if (currentWeapon == Weapon.Rifle)
         {
-            return rifleMagazineAmmunition + " / " + rifleAmmunition;
+            return rifleMagazineAmmunition + "/" + rifleAmmunition;
         }
         else if (currentWeapon == Weapon.Pistol)
         {
-            return pistolMagazineAmmunition + " / " + pistolAmmunition;
+            return pistolMagazineAmmunition + "/" + pistolAmmunition;
         }
         else if (currentWeapon == Weapon.Shotgun)
         {
-            return shotgunMagazineAmmunition + " / " + shotgunAmmunition;
+            return shotgunMagazineAmmunition + "/" + shotgunAmmunition;
         }
         else
         {
@@ -107,26 +177,36 @@ public class PlayerBehaviour : MonoBehaviour
 
     public IEnumerator ChangeWeapon(Weapon newWeapon)
     {
-        if (!reloading && !weaponSwap)
+        if (!reloading && !weaponSwap && !fired)
         {
             currentWeapon = newWeapon;
             weaponSwap = true;
+            if (currentWeapon == Weapon.Rifle)
+                anim.SetTrigger("rifle");
+            else if (currentWeapon == Weapon.Pistol)
+                anim.SetTrigger("handgun");
+            else if (currentWeapon == Weapon.Shotgun)
+                anim.SetTrigger("shotgun");
+            else
+                anim.SetTrigger("knife");
+            weaponSwapTimer = wc.reloadTime;
             yield return new WaitForSeconds(wc.reloadTime);
             weaponSwap = false;
-        }
-        else
-        {
-            Debug.Log("Can't change weapon while reloading or swapping weapon");
         }
     }
 
     public IEnumerator ReloadWeapon()
     {
         if (currentWeapon != Weapon.Knife)
-            yield return new WaitForSeconds(wc.reloadTime);
-
-        if (!weaponSwap && !reloading)
         {
+            anim.SetTrigger("reload");
+            reloadTimer = wc.reloadTime;
+            yield return new WaitForSeconds(wc.reloadTime);
+        }
+
+        if (!weaponSwap && !reloading && !fired && currentWeapon != Weapon.Knife)
+        {
+
             if (currentWeapon == Weapon.Rifle)
             {
                 if (rifleAmmunition > wc.rifleMagazineSize)
@@ -191,91 +271,101 @@ public class PlayerBehaviour : MonoBehaviour
 
     public IEnumerator FireWeapon()
     {
-        if (currentWeapon == Weapon.Rifle && !fired && !weaponSwap)
+        if (!fired && !weaponSwap && !reloading)
         {
-            if (rifleMagazineAmmunition > 0)
+            if (currentWeapon == Weapon.Rifle)
             {
-                fired = true;
-                
-                GameObject myBullet = Instantiate(wc.rifleBullet, transform.position + (transform.up * 2), Quaternion.identity);
-                BulletInformation bulletInfo = myBullet.GetComponent<BulletInformation>();
-                bulletInfo.InitiateBullet(wc.rifleDamage, wc.rifleBulletSpeed, transform.up, gameObject, wc.rifleBulletRange);
-
-                rifleMagazineAmmunition -= 1;
-                yield return new WaitForSeconds(wc.rifleCD);
-                fired = false;
-            }
-            else
-            {
-                print("No more rifle ammunition in magazine");
-            }
-        }
-        else if (currentWeapon == Weapon.Pistol && !fired && !weaponSwap && pistolMagazineAmmunition > 0)
-        {
-            if (pistolMagazineAmmunition > 0)
-            {
-                fired = true;
-
-                GameObject myBullet = Instantiate(wc.pistolBullet, transform.position + (transform.up * 2), Quaternion.identity);
-                BulletInformation bulletInfo = myBullet.GetComponent<BulletInformation>();
-                print(wc.pistolBulletSpeed);
-                bulletInfo.InitiateBullet(wc.pistolDamage, wc.pistolBulletSpeed, transform.up, gameObject, wc.pistolBulletRange);
-
-                pistolMagazineAmmunition -= 1;
-                yield return new WaitForSeconds(wc.pistolCD);
-                fired = false;
-            }
-            else
-            {
-                print("No more pistol ammunition in magazine");
-            }
-        }
-        else if (currentWeapon == Weapon.Shotgun && !fired && !weaponSwap)
-        {
-            int shotgunBulletAmount = 6; //This number needs to be dividable with 3, eg 3, 6, 9 etc.
-            float spreadFactor = 0.09f;
-            if (shotgunMagazineAmmunition > 0)
-            {
-                fired = true;
-
-
-                for (int i = 0; i < shotgunBulletAmount; i++)
+                if (rifleMagazineAmmunition > 0)
                 {
-                    Vector3 [] bullet = RandomDirections(transform.up, spreadFactor * i, 1);
-                    GameObject myBullet = Instantiate(wc.shotgunBullet, transform.position + (transform.up * 2), Quaternion.identity);
-                    BulletInformation straightBulletInfo = myBullet.GetComponent<BulletInformation>();
-                    straightBulletInfo.InitiateBullet(wc.shotgunDamage, wc.shotgunBulletSpeed, bullet[0], gameObject, wc.shotgunBulletRange);
+                    anim.SetTrigger("shoot");
+                    fired = true;
+                    GameObject myBullet = Instantiate(wc.rifleBullet, transform.position + (transform.up * 2), Quaternion.identity);
+                    BulletInformation bulletInfo = myBullet.GetComponent<BulletInformation>();
+                    bulletInfo.InitiateBullet(wc.rifleDamage, wc.rifleBulletSpeed, transform.up, gameObject, wc.rifleBulletRange);
+
+                    rifleMagazineAmmunition -= 1;
+                    fireCD = wc.rifleCD;
+                    yield return new WaitForSeconds(wc.rifleCD);
+                    fired = false;
                 }
-                /* 
-                Vector3[] straightBullets = RandomDirections(transform.up, 0.2f, shotgunBulletAmount / 3);
-                Vector3[] leftBullets = RandomDirections(transform.up, 0.45f, shotgunBulletAmount / 3);
-                Vector3[] rightBullets = RandomDirections(transform.up, 0.45f, shotgunBulletAmount / 3);
-    
-                for (int i = 0; i < shotgunBulletAmount / 3; i++)
+                else
                 {
-                    GameObject straightBullet = Instantiate(gc.shotgunBullet, transform.position + (transform.up * 2), Quaternion.identity);
-                    BulletInformation straightBulletInfo = straightBullet.GetComponent<BulletInformation>();
-                    straightBulletInfo.InitiateBullet(gc.shotgunDamage, gc.shotgunBulletSpeed, straightBullets[i], gameObject);
-                    GameObject leftBullet = Instantiate(gc.shotgunBullet, transform.position + (transform.up * 2), Quaternion.identity);
-                    BulletInformation leftBulletInfo = leftBullet.GetComponent<BulletInformation>();
-                    leftBulletInfo.InitiateBullet(gc.shotgunDamage, gc.shotgunBulletSpeed, straightBullets[i], gameObject);
-                    GameObject rightBullet = Instantiate(gc.shotgunBullet, transform.position + (transform.up * 2), Quaternion.identity);
-                    BulletInformation rightBulletInfo = rightBullet.GetComponent<BulletInformation>();
-                    rightBulletInfo.InitiateBullet(gc.shotgunDamage, gc.shotgunBulletSpeed, straightBullets[i], gameObject);
-                }*/
+                    print("No more rifle ammunition in magazine");
+                }
+            }
+            else if (currentWeapon == Weapon.Pistol)
+            {
+                if (pistolMagazineAmmunition > 0)
+                {
+                    anim.SetTrigger("shoot");
+                    fired = true;
+                    GameObject myBullet = Instantiate(wc.pistolBullet, transform.position + (transform.up * 2), Quaternion.identity);
+                    BulletInformation bulletInfo = myBullet.GetComponent<BulletInformation>();
+                    bulletInfo.InitiateBullet(wc.pistolDamage, wc.pistolBulletSpeed, transform.up, gameObject, wc.pistolBulletRange);
 
-                shotgunMagazineAmmunition -= 1;
-                yield return new WaitForSeconds(wc.shotgunCD);
-                fired = false;
+                    pistolMagazineAmmunition -= 1;
+                    fireCD = wc.pistolCD;
+                    yield return new WaitForSeconds(wc.pistolCD);
+                    fired = false;
+                }
+
+                else
+                {
+                    print("No more pistol ammunition in magazine");
+                }
+            }
+            else if (currentWeapon == Weapon.Shotgun)
+            {
+                anim.SetTrigger("shoot");
+                int shotgunBulletAmount = 6; //This number needs to be dividable with 3, eg 3, 6, 9 etc.
+                float spreadFactor = 0.09f;
+                if (shotgunMagazineAmmunition > 0)
+                {
+                    fired = true;
+                    for (int i = 0; i < shotgunBulletAmount; i++)
+                    {
+                        Vector3[] bullet = RandomDirections(transform.up, spreadFactor * i, 1);
+                        GameObject myBullet = Instantiate(wc.shotgunBullet, transform.position + (transform.up * 2), Quaternion.identity);
+                        BulletInformation straightBulletInfo = myBullet.GetComponent<BulletInformation>();
+                        straightBulletInfo.InitiateBullet(wc.shotgunDamage, wc.shotgunBulletSpeed, bullet[0], gameObject, wc.shotgunBulletRange);
+                    }
+
+                    shotgunMagazineAmmunition -= 1;
+                    fireCD = wc.shotgunCD;
+                    yield return new WaitForSeconds(wc.shotgunCD);
+                    fired = false;
+                }
+                else
+                {
+                    print("No more shotgun ammuniton in magazine");
+                }
             }
             else
             {
-                print("No more shotgun ammuniton in magazine");
+                anim.SetTrigger("melee");
+                SwingKnife();
+                fireCD = wc.knifeCD;
+                yield return new WaitForSeconds(wc.knifeCD);
             }
         }
-        else
+    }
+
+    public void SwingKnife()
+    {
+        if (!fired && !weaponSwap && !reloading)
         {
-            print(currentWeapon.ToString() + " bullet cooldown");
+            if (currentWeapon == Weapon.Knife)
+            {
+                Collider2D hitArea = new Collider2D();
+                hitArea = Physics2D.OverlapBox(gameObject.transform.position + (gameObject.transform.up * 2f), new Vector2(0.5f, 0.5f), 0f);
+
+                if (hitArea != null && hitArea.gameObject.tag.Equals("Player"))
+                {
+                    PlayerBehaviour target = hitArea.gameObject.GetComponent<PlayerBehaviour>();
+                    target.TakeDamage(wc.knifeDamage);
+                }
+
+            }
         }
     }
 
@@ -289,6 +379,20 @@ public class PlayerBehaviour : MonoBehaviour
             bulletDirs[i] = direction + new Vector3(x, y, 0f);
         }
         return bulletDirs;
+    }
+
+    IEnumerator Timers()
+    {
+        float step = 0.033f;
+        while (true)
+        {
+
+            fireCD -= step;
+            weaponSwapTimer -= step;
+            reloadTimer -= step;
+
+            yield return new WaitForSeconds(step);
+        }
     }
 }
 

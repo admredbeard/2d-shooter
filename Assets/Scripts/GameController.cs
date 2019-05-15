@@ -4,14 +4,27 @@ using UnityEngine;
 
 public class GameController : MonoBehaviour
 {
+    void Start()
+    {
+        players = new List<GameObject>();
+        playerBehaviours = new List<PlayerBehaviour>();
+        mb = GameObject.Find("MapController").GetComponent<MapBehavior>();
+        traverability = mb.GetTraversable();
+        SpawnTeams();
+        StartCoroutine("ZoneHandler");
+    }
+
     public int teamCount;
     public int teamSize;
-    public GameObject playerPrefab;
+    public GameObject playerTeam1Prefab;
+    public GameObject playerTeam2Prefab;
     private int team1Score;
     private int team2Score;
     List<GameObject> players;
+    List<PlayerBehaviour> playerBehaviours;
     public GameObject zoneObj;
     MapBehavior mb;
+    bool[,] traverability;
     public void GiveScoreToTeamOne(int score)
     {
         team1Score = team1Score + score;
@@ -38,22 +51,14 @@ public class GameController : MonoBehaviour
         return players[unitID].GetComponent<PlayerBehaviour>().GetHealth();
     }
 
-    // Get a list of PlayerBehaviours of all players in the vision range.
-    public List<GameObject> VisiblePlayers(int unitID)
+    public List<GameObject> GetPlayers()
     {
-        List<GameObject> inRange = new List<GameObject>();
-        float visionRange = players[unitID].GetComponent<PlayerBehaviour>().visionRange;
-        foreach (GameObject player in players)
-        {
-            if (player.GetComponent<PlayerBehaviour>().GetID() != unitID)
-            {
-                if (Vector2.Distance(player.transform.position, players[unitID].transform.position) < visionRange)
-                {
-                    inRange.Add(player);
-                }
-            }
-        }
-        return inRange;
+        return players;
+    }
+
+    public List<PlayerBehaviour> GetPlayerBehaviours()
+    {
+        return playerBehaviours;
     }
 
     // Returns true if the first object hit is the intended enemy, else returns false
@@ -76,7 +81,40 @@ public class GameController : MonoBehaviour
         return true;
     }
 
+    public List<int> UnitsInVision(int unitId)
+    {
+        List<int> idsWithinRange = new List<int>();
+        GameObject player = players[unitId];
+        for (int i = 0; i < players.Count; i++)
+        {
+            if (i != unitId)
+            {
+                float range = Vector2.Distance(player.transform.position, players[i].transform.position);
+                if (range < playerBehaviours[unitId].visionRange)
+                    idsWithinRange.Add(i);
+            }
+        }
 
+        return idsWithinRange;
+    }
+
+    public List<int> UnitsInVisionByTeam(int unitId, int teamId)
+    {
+        List<int> idsWithinRange = new List<int>();
+        GameObject player = players[unitId];
+        
+        for (int i = 0; i < players.Count; i++)
+        {
+            if (i != unitId && playerBehaviours[i].GetTeam() == teamId)
+            {
+                float range = Vector2.Distance(player.transform.position, players[i].transform.position);
+                if (range < playerBehaviours[unitId].visionRange)
+                    idsWithinRange.Add(i);
+            }
+        }
+
+        return idsWithinRange;
+    }
 
     // Force unit to look in direction of the specified angle, counterclockwise clamps between 0 and 360. 
     public void LookInDir(int unitID, float angle)
@@ -88,87 +126,99 @@ public class GameController : MonoBehaviour
     // Spawning teamSize units for each team and assigning unique UnitIDs aswell as Team with values -1 or 1.
     private void SpawnTeams()
     {
-
         for (int i = 0; i < 2 * teamSize; i++)
         {
-            GameObject temp = Instantiate(playerPrefab) as GameObject;
-            temp.name = "CoolDude";
+            GameObject temp;
+            if (i % 2 == 0)
+                temp = Instantiate(playerTeam1Prefab) as GameObject;
+            else
+                temp = Instantiate(playerTeam2Prefab) as GameObject;
+
+            temp.name = "Player" + (i + 1).ToString();
             PlayerBehaviour tempBehaviour = temp.GetComponent<PlayerBehaviour>();
             tempBehaviour.SetID(i);
-
             players.Add(temp);
-            if (i < teamSize)
+            playerBehaviours.Add(tempBehaviour);
+            if (i % 2 == 0)
             {
                 tempBehaviour.SetTeam(-1);
+                temp.transform.position = mb.GetWorldPosFromGridPos(traverability.GetLength(0) - 1, traverability.GetLength(0) - 1);
             }
             else
             {
                 tempBehaviour.SetTeam(1);
+                temp.transform.position = mb.GetWorldPosFromGridPos(0, 0);
             }
-            //Respawn(i);
         }
-
     }
 
-    private void Respawn(int unitID) {
+    private Vector2 GetRespawnPos(int unitID)
+    {
         GameObject respawnUnit = players[unitID];
 
         int tempXIdx = 0;
         int tempYIdx = 0;
-        for (int i = 0; i < players.Count; i++) { 
-            if (respawnUnit.GetComponent<PlayerBehaviour>().team != players[i].GetComponent<PlayerBehaviour>().team) {
+        int playerCount = 0;
+        for (int i = 0; i < players.Count; i++)
+        {
+            if (respawnUnit.GetComponent<PlayerBehaviour>().GetTeam() != players[i].GetComponent<PlayerBehaviour>().GetTeam())
+            {
                 tempXIdx += (int)mb.GetGridPosFromWorldPos(players[i].transform.position).x;
                 tempYIdx += (int)mb.GetGridPosFromWorldPos(players[i].transform.position).y;
+                playerCount++;
             }
         }
-        tempXIdx = tempXIdx / teamSize;
-        tempYIdx = tempYIdx / teamSize;
+        tempXIdx = tempXIdx / playerCount;
+        tempYIdx = tempYIdx / playerCount;
 
         Vector2 meanPos = mb.GetWorldPosFromGridPos(tempXIdx, tempYIdx);
-        bool [,] traverability = mb.GetTraversable();
+
         Vector2[] corners = { mb.GetWorldPosFromGridPos(0, 0), mb.GetWorldPosFromGridPos(traverability.GetLength(0) - 1, 0),
                             mb.GetWorldPosFromGridPos(traverability.GetLength(0) - 1, 0), mb.GetWorldPosFromGridPos(traverability.GetLength(0) - 1, traverability.GetLength(0) - 1) };
         float tempDist = 0;
         float maxdist = 0;
         Vector2 spawnPos = meanPos;
-        for (int i = 0; i < corners.Length; i++) {
+        for (int i = 0; i < corners.Length; i++)
+        {
             tempDist = Vector2.Distance(meanPos, corners[i]);
-            if (tempDist > maxdist) {
+            if (tempDist > maxdist)
+            {
                 maxdist = tempDist;
                 spawnPos = corners[i];
             }
         }
 
-        respawnUnit.transform.position = spawnPos;
-        respawnUnit.GetComponent<PlayerBehaviour>().ResetStats();
+        return spawnPos;
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        players = new List<GameObject>();
-        mb = GameObject.Find("MapController").GetComponent<MapBehavior>();
-        SpawnTeams();
-        StartCoroutine("ZoneHandler");
-    }
-
-    // Update is called once per frame
-    void Update()
+    public void Respawn(int unitID, int teamId)
     {
 
+        Vector2 spawnPos = GetRespawnPos(unitID);
+
+        players[unitID].transform.position = spawnPos;
+        //players[unitID].GetComponent<PlayerBehaviour>().ResetStats();
+
+        if(teamId == 1)
+            GiveScoreToTeamTwo(5);
+        else
+            GiveScoreToTeamOne(5);
     }
 
-    private Vector3 GetRandomZonePosition(){
+    private Vector3 GetRandomZonePosition()
+    {
         int mapSize = mb.GetMapSize();
-        float worldSize = mapSize*2.5f;
-        float x_cord = Random.Range(5f,worldSize-5f);
-        float y_cord = Random.Range(5f,worldSize-5f);
+        float worldSize = mapSize * 2.5f;
+        float x_cord = Random.Range(5f, worldSize - 5f);
+        float y_cord = Random.Range(5f, worldSize - 5f);
         return new Vector3(x_cord, y_cord, -2);
     }
 
-    IEnumerator ZoneHandler(){
+    IEnumerator ZoneHandler()
+    {
         yield return new WaitForSeconds(10f);
-        while(true){
+        while (true)
+        {
             GameObject zone = Instantiate(zoneObj, GetRandomZonePosition(), Quaternion.identity);
             yield return new WaitForSeconds(30f);
             Destroy(zone);

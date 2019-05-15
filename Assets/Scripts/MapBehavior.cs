@@ -19,16 +19,24 @@ public class MapBehavior : MonoBehaviour
     GameObject Ground;
     GameObject Obstacles;
     GameObject Walls;
+
+    [System.NonSerialized]
+    public Vector2 zonePos;
+    [System.NonSerialized]
+    public float zoneRadius;
     
     bool[,] traversable;
-    List<Vector2> obstaclePositions;
 
+    GameObject gameController;
+    GameController gc;
 
     // Start is called before the first frame update
     void Start()
     {
+        zoneRadius = 0;
+        zonePos = Vector2.zero;
+        gc = GameObject.Find("GameController").GetComponent<GameController>();
         mapSize = Random.Range(mapMinSize, mapMaxSize);
-        obstaclePositions = new List<Vector2>();
         InitEditor();
         traversable = new bool[mapSize, mapSize];
         GenerateMap();
@@ -38,12 +46,14 @@ public class MapBehavior : MonoBehaviour
 
     void InitEditor()
     {
-        Ground = Instantiate(new GameObject(), this.transform);
+        GameObject temp = new GameObject();
+        Ground = Instantiate(temp, this.transform);
         Ground.name = "Ground";
-        Obstacles = Instantiate(new GameObject(), this.transform);
+        Obstacles = Instantiate(temp, this.transform);
         Obstacles.name = "Obstacles";
-        Walls = Instantiate(new GameObject(), this.transform);
+        Walls = Instantiate(temp, this.transform);
         Walls.name = "Walls";
+        Destroy(temp);
     }
 
     void GenerateMap()
@@ -108,9 +118,9 @@ public class MapBehavior : MonoBehaviour
         return new Vector2(mapSize * 2.5f / 2, mapSize * 2.5f / 2);
     }
 
-    public Vector2 GetGridPosFromWorldPos(Vector3 worldPos)
+    public Vector2Int GetGridPosFromWorldPos(Vector2 worldPos)
     {
-        return new Vector2(Mathf.Round(worldPos.x / 2.5f), Mathf.Round(worldPos.y / 2.5f));
+        return new Vector2Int((int)Mathf.Round(worldPos.x / 2.5f), (int)Mathf.Round(worldPos.y / 2.5f));
     }
 
     public Vector2 GetWorldPosFromGridPos(int x, int y)
@@ -118,12 +128,22 @@ public class MapBehavior : MonoBehaviour
         return new Vector2(Mathf.Round(x * 2.5f), Mathf.Round(y * 2.5f));
     }
 
+    public Vector2 GetWorldPosFromGridPos(Vector2Int gridIndex)
+    {
+        return new Vector2(Mathf.Round(gridIndex.x * 2.5f), Mathf.Round(gridIndex.y * 2.5f));
+    }
+
     public bool IsGridPosTraversable(int x, int y)
     {
         return traversable[x, y];
     }
 
-    public bool IsWorldPosTraversable(Vector3 worldPos)
+    public bool IsGridPosTraversable(Vector2Int v)
+    {
+        return traversable[v.x, v.y];
+    }
+
+    public bool IsWorldPosTraversable(Vector2 worldPos)
     {
         return traversable[(int)Mathf.Round(worldPos.x / 2.5f), (int)Mathf.Round(worldPos.y / 2.5f)];
     }
@@ -133,4 +153,88 @@ public class MapBehavior : MonoBehaviour
         return traversable;
     }
 
+    public Vector2 GetWorldPos(int unidId)
+    {
+        return new Vector2(gc.GetPlayers()[unidId].transform.position.x, gc.GetPlayers()[unidId].transform.position.y);
+    }
+
+    public Vector2Int GetGridPos(int unitId)
+    {
+        return GetGridPosFromWorldPos(new Vector2(gc.GetPlayers()[unitId].transform.position.x, gc.GetPlayers()[unitId].transform.position.y));
+    }
+
+    public float DistanceToUnit(int fromId, int toId)
+    {
+        return Vector2.Distance(GetWorldPos(fromId), GetWorldPos(toId));
+    }
+
+    public float DistanceToWorldPos(int unitId, Vector2 worldPos)
+    {
+        return Vector2.Distance(GetWorldPos(unitId), worldPos);
+    }
+
+    public float DistanceToGridPos(int unitId, Vector2Int gridIndex)
+    {
+        return Vector2.Distance(GetWorldPos(unitId), GetWorldPosFromGridPos(gridIndex));
+    }
+
+    public bool TargetInSight(int unitId, int targetId)
+    {
+        Vector2 targetPos = new Vector2(gc.GetPlayers()[targetId].transform.position.x, gc.GetPlayers()[targetId].transform.position.y);
+        return FreeLineOfSight2D(unitId, targetPos);
+    }
+
+    public bool WorldPositionInSight(int unitId, Vector2 worldPosition)
+    {
+        return FreeLineOfSight2D(unitId, worldPosition);
+    }
+
+    public bool GridPositionInSight(int unitId, Vector2Int gridPosition)
+    {
+        return FreeLineOfSight2D(unitId, GetWorldPosFromGridPos(gridPosition));
+    }
+
+    public bool IsUnitInZone(int unitId)
+    {
+        return Vector2.Distance(GetWorldPos(unitId), zonePos) < zoneRadius;
+    }
+
+    public bool IsWorldPosInZone(Vector2 worldPos)
+    {
+        return Vector2.Distance(worldPos, zonePos) < zoneRadius;
+    }
+
+    public bool IsGridPosInZone(Vector2Int gridPos)
+    {
+        return Vector2.Distance(GetWorldPosFromGridPos(gridPos), zonePos) < zoneRadius;
+    }
+
+    public Vector2 ZoneCenter()
+    {
+        return zonePos;
+    }
+
+    public float ZoneRadius()
+    {
+        return zoneRadius;
+    }
+
+    bool FreeLineOfSight2D(int unitID, Vector2 targetPos)
+    {
+        Vector2 unitPos = new Vector2(gc.GetPlayers()[unitID].transform.position.x, gc.GetPlayers()[unitID].transform.position.y);
+        RaycastHit2D[] lineOfSightObjects = Physics2D.RaycastAll(unitPos, targetPos - unitPos, Vector2.Distance(unitPos, targetPos));
+        
+        for (int i = 0; i < lineOfSightObjects.Length; i++)
+        {
+            if (lineOfSightObjects[i].transform.name == gc.GetPlayers()[unitID].transform.name)
+            {
+                continue;
+            }
+            else 
+            {
+                return false;
+            }
+        }
+        return true;
+    }
 }
