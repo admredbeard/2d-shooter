@@ -23,11 +23,51 @@ public class APIScript : MonoBehaviour
 
     public void Move(int unitId, float angle)
     {
+        if(CheckIfCorrectTeam(unitId)){
+            //do move
+            float speed = 5f;
+            float distance = 5f;
+            Rigidbody2D rb = gc.GetPlayerBehaviours()[unitId].GetComponent<Rigidbody2D>();
+            RaycastHit2D[] hit = new RaycastHit2D[2];
+            Vector2 velocity = (Vector2)(Quaternion.AngleAxis(angle, Vector3.forward) * Vector3.right);
+            
+            int results = rb.Cast(velocity.normalized, hit, speed*Time.fixedDeltaTime*2);
+            if(results > 0){
+                distance = 0;
+            }else if(results == 0){
+                distance = speed*Time.fixedDeltaTime;
+            }
+            rb.MovePosition(rb.position + velocity.normalized*distance);
+        }else{
+            throw new System.UnauthorizedAccessException("Error: Can not move opponents units");
+        }
+        //Unit must be on our team
+    }
+
+    public void MoveAddforce(int unitId, float angle)
+    {
+        if(CheckIfCorrectTeam(unitId)){
+            //do move
+            float movementSpeed = 20f;
+            Rigidbody2D rb = gc.GetPlayerBehaviours()[unitId].GetComponent<Rigidbody2D>();
+            Vector2 velocity = (Vector2)(Quaternion.AngleAxis(angle, Vector3.forward) * Vector3.right);
+            rb.AddForce(velocity * movementSpeed);
+        }else{
+            throw new System.UnauthorizedAccessException("Error: Can not move opponents units");
+        }
         //Unit must be on our team
     }
 
     public void LookAtDirection(int unitId, float angle)
     {
+        if(CheckIfCorrectTeam(unitId)){
+            //do rotate
+            float offset = 90f; //change this to make the gun point towards where we shoot and stuff
+            Rigidbody2D rb = gc.GetPlayerBehaviours()[unitId].GetComponent<Rigidbody2D>();
+            rb.transform.rotation = Quaternion.Euler(0f, 0f, angle - offset);
+        }else{
+            throw new System.UnauthorizedAccessException("Error: Can not move opponents units");
+        }
         //Unit must be on your team
     }
 
