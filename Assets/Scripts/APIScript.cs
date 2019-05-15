@@ -157,14 +157,20 @@ public class APIScript : MonoBehaviour
 
     public bool WorldPositionInSight(int unitId, Vector2 worldPosition)
     {
-        //Unit must be on your team
-        return mb.WorldPositionInSight(unitId, worldPosition);
+        if (CheckIfCorrectTeam(unitId))
+            return mb.WorldPositionInSight(unitId, worldPosition);
+        else
+            throw new System.UnauthorizedAccessException("Error: Unit must on your team");
     }
 
     public bool GridPositionInSight(int unitId, Vector2Int gridPosition)
     {
         //Unit must be on your team
-        return mb.GridPositionInSight(unitId, gridPosition);
+        if (CheckIfCorrectTeam(unitId))
+            return mb.GridPositionInSight(unitId, gridPosition);
+        else
+            throw new System.UnauthorizedAccessException("Error: Unit must on your team");
+        
     }
 
     public void Attack(int unitId)
@@ -232,10 +238,14 @@ public class APIScript : MonoBehaviour
 
     public float GetHealth(int unitId)
     {
-        List<PlayerBehaviour> list = gc.GetPlayerBehaviours();
-        print(list.Count);
-        PlayerBehaviour player = gc.GetPlayerBehaviours()[unitId];
-        return player.GetHealth();
+        if(CheckIfInVision(unitId)){
+            List<PlayerBehaviour> list = gc.GetPlayerBehaviours();
+            print(list.Count);
+            PlayerBehaviour player = gc.GetPlayerBehaviours()[unitId];
+            return player.GetHealth();
+        }
+        else
+            throw new System.UnauthorizedAccessException("Error: Can not access enemy health, not in vision");
     }
 
     public bool CanFire(int unitId)
@@ -269,12 +279,10 @@ public class APIScript : MonoBehaviour
 
     public float WeaponSwapCooldown(int unitId)
     {
-        {
-            if (CheckIfCorrectTeam(unitId))
-                return gc.GetPlayerBehaviours()[unitId].GetWeaponSwapCD();
-            else
-                return 1f;
-        }
+        if (CheckIfCorrectTeam(unitId))
+            return gc.GetPlayerBehaviours()[unitId].GetWeaponSwapCD();
+        else
+            return 1f;
     }
 
     public bool IsGridPositionTraversable(Vector2Int gridPosition)
@@ -302,12 +310,18 @@ public class APIScript : MonoBehaviour
 
     public float GetDistanceToGridPosition(int unitId, Vector2Int gridPosition)
     {
-        return mb.DistanceToGridPos(unitId, gridPosition);
+        if (CheckIfCorrectTeam(unitId))
+            return mb.DistanceToGridPos(unitId, gridPosition);
+        else
+            throw new System.UnauthorizedAccessException("Error: Unit must on your team");
     }
 
     public float GetDistanceToWorldPosition(int unitId, Vector2 worldPosition)
     {
-        return mb.DistanceToWorldPos(unitId, worldPosition);
+        if (CheckIfCorrectTeam(unitId))
+            return mb.DistanceToWorldPos(unitId, worldPosition);
+        else
+            throw new System.UnauthorizedAccessException("Error: Unit must on your team");
     }
 
     public bool IsUnitInZone(int unitId)
@@ -326,6 +340,26 @@ public class APIScript : MonoBehaviour
     public bool IsGridPosInZone(Vector2Int gridPos)
     {
         return mb.IsGridPosInZone(gridPos);
+    }
+
+    public int GetMapSize()
+    {
+        return mb.GetMapSize();
+    }
+
+    public Vector2Int GetGridPosFromWorldPos(Vector2 worldPos)
+    {
+        return mb.GetGridPosFromWorldPos(worldPos);
+    }
+
+    public Vector2 GetWorldPosFromGridPos(Vector2Int gridIndex)
+    {
+        return mb.GetGridPosFromWorldPos(gridIndex);
+    }
+
+    public Vector2 GetWorldPosFromGridPos(int x, int y)
+    {
+        return mb.GetWorldPosFromGridPos(x, y);
     }
 
 }
