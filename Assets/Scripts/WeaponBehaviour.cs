@@ -11,22 +11,24 @@ public class WeaponBehaviour : MonoBehaviour
     public float rifleDamage = 0f;
     public float pistolDamage = 0f;
     public float shotgunDamage = 0f;
+    public float knifeDamage = 2f;
     public float rifleBulletSpeed = 100f;
     public float pistolBulletSpeed = 70f;
     public float shotgunBulletSpeed = 80f;
     public float rifleBulletRange = 1.2f;
     public float pistolBulletRange = 0.5f;
     public float shotgunBulletRange = 0.35f;
-    public float startRifleAmmunition = 0f;
-    public float startPistolAmmunition = 0f;
-    public float startShotgunAmmunition = 0f;
+    public int startRifleAmmunition = 0;
+    public int startPistolAmmunition = 0;
+    public int startShotgunAmmunition = 0;
 
-    public float rifleMagazineSize = 0f;
-    public float pistolMagazineSize = 0f;
-    public float shotgunMagazineSize = 0f;
+    public int rifleMagazineSize = 0;
+    public int pistolMagazineSize = 0;
+    public int shotgunMagazineSize = 0;
     public float reloadTime = 1f;
     public float pistolCD = 1f;
     public float shotgunCD = 1f;
     public float rifleCD = 0.1f;
+    public float knifeCD = 0.2f;
 
 }

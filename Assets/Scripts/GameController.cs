@@ -4,9 +4,20 @@ using UnityEngine;
 
 public class GameController : MonoBehaviour
 {
+    void Start()
+    {
+        players = new List<GameObject>();
+        playerBehaviours = new List<PlayerBehaviour>();
+        mb = GameObject.Find("MapController").GetComponent<MapBehavior>();
+        traverability = mb.GetTraversable();
+        SpawnTeams();
+        StartCoroutine("ZoneHandler");
+    }
+
     public int teamCount;
     public int teamSize;
-    public GameObject playerPrefab;
+    public GameObject playerTeam1Prefab;
+    public GameObject playerTeam2Prefab;
     private int team1Score;
     private int team2Score;
     List<GameObject> players;
@@ -40,24 +51,6 @@ public class GameController : MonoBehaviour
         return players[unitID].GetComponent<PlayerBehaviour>().GetHealth();
     }
 
-    // Get a list of PlayerBehaviours of all players in the vision range.
-    public List<GameObject> VisiblePlayers(int unitID)
-    {
-        List<GameObject> inRange = new List<GameObject>();
-        float visionRange = players[unitID].GetComponent<PlayerBehaviour>().visionRange;
-        foreach (GameObject player in players)
-        {
-            if (player.GetComponent<PlayerBehaviour>().GetID() != unitID)
-            {
-                if (Vector2.Distance(player.transform.position, players[unitID].transform.position) < visionRange)
-                {
-                    inRange.Add(player);
-                }
-            }
-        }
-        return inRange;
-    }
-
     public List<GameObject> GetPlayers()
     {
         return players;
@@ -67,6 +60,7 @@ public class GameController : MonoBehaviour
     {
         return playerBehaviours;
     }
+
     // Returns true if the first object hit is the intended enemy, else returns false
     public bool FreeLineOfSight(int unitID, int enemyID)
     {
@@ -87,7 +81,40 @@ public class GameController : MonoBehaviour
         return true;
     }
 
+    public List<int> UnitsInVision(int unitId)
+    {
+        List<int> idsWithinRange = new List<int>();
+        GameObject player = players[unitId];
+        for (int i = 0; i < players.Count; i++)
+        {
+            if (i != unitId)
+            {
+                float range = Vector2.Distance(player.transform.position, players[i].transform.position);
+                if (range < playerBehaviours[unitId].visionRange)
+                    idsWithinRange.Add(i);
+            }
+        }
 
+        return idsWithinRange;
+    }
+
+    public List<int> UnitsInVisionByTeam(int unitId, int teamId)
+    {
+        List<int> idsWithinRange = new List<int>();
+        GameObject player = players[unitId];
+        
+        for (int i = 0; i < players.Count; i++)
+        {
+            if (i != unitId && playerBehaviours[i].GetTeam() == teamId)
+            {
+                float range = Vector2.Distance(player.transform.position, players[i].transform.position);
+                if (range < playerBehaviours[unitId].visionRange)
+                    idsWithinRange.Add(i);
+            }
+        }
+
+        return idsWithinRange;
+    }
 
     // Force unit to look in direction of the specified angle, counterclockwise clamps between 0 and 360. 
     public void LookInDir(int unitID, float angle)
@@ -99,10 +126,14 @@ public class GameController : MonoBehaviour
     // Spawning teamSize units for each team and assigning unique UnitIDs aswell as Team with values -1 or 1.
     private void SpawnTeams()
     {
-
         for (int i = 0; i < 2 * teamSize; i++)
         {
-            GameObject temp = Instantiate(playerPrefab) as GameObject;
+            GameObject temp;
+            if (i % 2 == 0)
+                temp = Instantiate(playerTeam1Prefab) as GameObject;
+            else
+                temp = Instantiate(playerTeam2Prefab) as GameObject;
+
             temp.name = "Player" + (i + 1).ToString();
             PlayerBehaviour tempBehaviour = temp.GetComponent<PlayerBehaviour>();
             tempBehaviour.SetID(i);
@@ -119,7 +150,6 @@ public class GameController : MonoBehaviour
                 temp.transform.position = mb.GetWorldPosFromGridPos(0, 0);
             }
         }
-
     }
 
     private Vector2 GetRespawnPos(int unitID)
@@ -131,7 +161,7 @@ public class GameController : MonoBehaviour
         int playerCount = 0;
         for (int i = 0; i < players.Count; i++)
         {
-            if (respawnUnit.GetComponent<PlayerBehaviour>().team != players[i].GetComponent<PlayerBehaviour>().team)
+            if (respawnUnit.GetComponent<PlayerBehaviour>().GetTeam() != players[i].GetComponent<PlayerBehaviour>().GetTeam())
             {
                 tempXIdx += (int)mb.GetGridPosFromWorldPos(players[i].transform.position).x;
                 tempYIdx += (int)mb.GetGridPosFromWorldPos(players[i].transform.position).y;
@@ -161,36 +191,18 @@ public class GameController : MonoBehaviour
         return spawnPos;
     }
 
-    private void Respawn(int unitID)
+    public void Respawn(int unitID, int teamId)
     {
 
         Vector2 spawnPos = GetRespawnPos(unitID);
 
         players[unitID].transform.position = spawnPos;
-        players[unitID].GetComponent<PlayerBehaviour>().ResetStats();
-    }
+        //players[unitID].GetComponent<PlayerBehaviour>().ResetStats();
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        players = new List<GameObject>();
-        playerBehaviours = new List<PlayerBehaviour>();
-        mb = GameObject.Find("MapController").GetComponent<MapBehavior>();
-        traverability = mb.GetTraversable();
-        SpawnTeams();
-        StartCoroutine("ZoneHandler");
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        for (int i = 0; i < players.Count; i++)
-        {
-            if (players[i].GetComponent<PlayerBehaviour>().GetHealth() < 0)
-            {
-                Respawn(i);
-            }
-        }
+        if(teamId == 1)
+            GiveScoreToTeamTwo(5);
+        else
+            GiveScoreToTeamOne(5);
     }
 
     private Vector3 GetRandomZonePosition()
