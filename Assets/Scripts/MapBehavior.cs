@@ -72,6 +72,7 @@ public class MapBehavior : MonoBehaviour
                 {
                     Instantiate(grass, new Vector3(x * 2.5f, y * 2.5f, 0), grass.transform.rotation, Ground.transform);
                 }
+                traversable[x, y] = true;
             }
         }
     }
@@ -237,4 +238,23 @@ public class MapBehavior : MonoBehaviour
         }
         return true;
     }
+
+    public float AngleBetweenUnits(int unitId, int targetId)
+    {
+        // NOT IMPLEMENTED YET
+        return 0f;
+    }
+
+    public float AngleBetweenUnitWorldpos(int unitId, int targetId)
+    {
+        // NOT IMPLEMENTED YET
+        return 0f;
+    }
+
+    public float AngleBetweenUnitGridpos(int unitId, int targetId)
+    {
+        // NOT IMPLEMENTED YET
+        return 0f;
+    }
+
 }
