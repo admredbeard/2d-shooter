@@ -14,6 +14,10 @@ public class AI2 : MonoBehaviour
 
     public bool debugPath = false;
 
+    int idPlayer1;
+    int idPlayer2;
+    int idPlayer3;
+    
     void Start()
     {
         api = gameObject.GetComponent<APIScript>();
@@ -21,23 +25,40 @@ public class AI2 : MonoBehaviour
         myTeamId = api.teamId;
         myUnits = api.GetPlayers(myTeamId);
         mapSize = (int)Mathf.Sqrt(map.Length);
+
         Init();
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
+        unit1Path = FollowPath(idPlayer1, unit1Path);
+        /*
+
         foreach (int unitId in myUnits)
         {
 
             //Execute your code
 
         }
+        */
     }
+
+    List<Node> unit1Path;
+    List<Node> unit2Path;
+    List<Node> unit3Path;
 
     public void Init()
     {
         initialized_map = new Node[mapSize, mapSize];
+
+        unit1Path = new List<Node>();
+        unit2Path = new List<Node>();
+        unit3Path = new List<Node>();
+
+        idPlayer1 = myUnits[0];
+        idPlayer2 = myUnits[1];
+        idPlayer3 = myUnits[2];
 
         for (int i = 0; i < mapSize; i++)
         {
@@ -49,16 +70,36 @@ public class AI2 : MonoBehaviour
             }
         }
         //Just some tests of A*:::
-        Node testnode1 = initialized_map[0, 0];
-        Node testnode2 = initialized_map[mapSize - 1, (int)mapSize / 2];
+        Vector2Int aUnitPos = api.GetGridPos(myUnits[0]);
+        Node testnode1 = initialized_map[aUnitPos.x, aUnitPos.y];
+        Node testnode2 = initialized_map[0, 0];
  
-        List<Node> apath = FindPath(testnode1, testnode2);
+        unit1Path = FindPath(testnode1, testnode2);
 
 
         if (debugPath)
         {
-            ShowPath(apath);
+            ShowPath(unit1Path);
         }
+    }
+
+    public List<Node> FollowPath(int unitID, List<Node> path)
+    {
+        if (path.Count > 0)
+        {
+            MoveTowards(unitID, path[0].position);
+            if (Vector2.Distance(api.GetWorldPosition(unitID), path[0].position) < 2.5f)
+            {
+                path.RemoveAt(0);
+            }
+        }
+        return path;
+    }
+
+    public void MoveTowards(int unitID, Vector2 targetWorldPos)
+    {
+        float direction = api.AngleBetweenUnitWorldpos(unitID, targetWorldPos);
+        api.Move(unitID, direction);
     }
 
     public List<Node> FindPath(Node start, Node goal)
@@ -90,7 +131,7 @@ public class AI2 : MonoBehaviour
                 {
                     continue;
                 }
-                float newCost = current.gScore + current.hScore; // add heuristic instead of hscore!
+                float newCost = current.gScore + Heuristic(current, neighbour); // add heuristic instead of hscore!
                 if (newCost < neighbour.gScore || !open.Contains(neighbour))
                 {
                     neighbour.gScore = newCost;
@@ -106,6 +147,20 @@ public class AI2 : MonoBehaviour
         }
         return null;
     }
+
+    public float Heuristic(Node from, Node to)
+    {
+        Vector2 diagonal = new Vector2(to.x_grid - from.x_grid, to.y_grid - from.y_grid);
+        if(diagonal.x != 0 && diagonal.y != 0)
+        {
+            if(!initialized_map[from.x_grid, to.y_grid].traversable || !initialized_map[to.x_grid, from.y_grid].traversable)
+            {
+                return 10;
+            }
+        }
+        return 0;
+    }
+
     public List<Node> CreatePath(Node start, Node end)
     {
         List<Node> path = new List<Node>();
