@@ -73,14 +73,14 @@ public class APIScript : MonoBehaviour
         return mb.AngleBetweenUnits(unitId, targetId);
     }
 
-    public float AngleBetweenUnitWorldpos(int unitId, int targetId)
+    public float AngleBetweenUnitWorldpos(int unitId, Vector2 targetPos)
     {
-        return mb.AngleBetweenUnitWorldpos(unitId, targetId);
+        return mb.AngleBetweenUnitWorldpos(unitId, targetPos);
     }
 
-    public float AngleBetweenUnitGridpos(int unitId, int targetId)
+    public float AngleBetweenUnitGridpos(int unitId, Vector2Int targetPos)
     {
-        return mb.AngleBetweenUnitGridpos(unitId, targetId);
+        return mb.AngleBetweenUnitGridpos(unitId, targetPos);
     }
 
     public List<int> SenseNearby(int unitId)
