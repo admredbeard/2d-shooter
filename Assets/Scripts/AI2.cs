@@ -29,9 +29,22 @@ public class AI2 : MonoBehaviour
         Init();
     }
 
+    Vector2 oldZone;
+
     // Update is called once per frame
     void FixedUpdate()
     {
+
+        if(api.GetZonePosition() != oldZone)
+        {
+            unit1Path = FindPath(initialized_map[api.GetGridPos(idPlayer1).x, api.GetGridPos(idPlayer1).y], initialized_map[api.GetGridPosFromWorldPos(api.GetZonePosition()).x, api.GetGridPosFromWorldPos(api.GetZonePosition()).y]);
+            oldZone = api.GetZonePosition();
+            if (debugPath)
+            {
+                ShowPath(unit1Path);
+            }
+        }
+
         unit1Path = FollowPath(idPlayer1, unit1Path);
         /*
 
@@ -51,7 +64,7 @@ public class AI2 : MonoBehaviour
     public void Init()
     {
         initialized_map = new Node[mapSize, mapSize];
-
+        oldZone = api.GetZonePosition();
         unit1Path = new List<Node>();
         unit2Path = new List<Node>();
         unit3Path = new List<Node>();
@@ -88,7 +101,7 @@ public class AI2 : MonoBehaviour
         if (path.Count > 0)
         {
             MoveTowards(unitID, path[0].position);
-            if (Vector2.Distance(api.GetWorldPosition(unitID), path[0].position) < 2.5f)
+            if (Vector2.Distance(api.GetWorldPosition(unitID), path[0].position) < 1.5f)
             {
                 path.RemoveAt(0);
             }
