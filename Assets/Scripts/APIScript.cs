@@ -333,6 +333,16 @@ public class APIScript : MonoBehaviour
             throw new System.UnauthorizedAccessException("Error: Unit must on your team");
     }
 
+    public Vector2 GetZonePosition()
+    {
+        return mb.ZoneCenter();
+    }
+
+    public float GetZoneRadius()
+    {
+        return mb.ZoneRadius();
+    }
+
     public bool IsUnitInZone(int unitId)
     {
         if (CheckIfCorrectTeam(unitId) || CheckIfInVision(unitId))
