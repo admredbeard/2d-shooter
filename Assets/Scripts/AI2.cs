@@ -25,12 +25,12 @@ public class AI2 : MonoBehaviour
         myTeamId = api.teamId;
         myUnits = api.GetPlayers(myTeamId);
         mapSize = (int)Mathf.Sqrt(map.Length);
-
+        
         Init();
     }
 
     Vector2 oldZone;
-
+    bool once = true;
     // Update is called once per frame
     void FixedUpdate()
     {
@@ -43,9 +43,41 @@ public class AI2 : MonoBehaviour
             {
                 ShowPath(unit1Path);
             }
+            if (api.GetWeapon(idPlayer1) == Weapon.Knife)
+            {
+                Debug.Log("jhhusfsdj");
+                if (api.WeaponSwapCooldown(idPlayer1) == 0)
+                {
+                    api.SwapWeapon(idPlayer1, Weapon.Pistol);
+                    Debug.Log(api.GetWeapon(idPlayer1));
+                    api.ReloadWeapon(idPlayer1);
+                }
+            }
         }
-
-        unit1Path = FollowPath(idPlayer1, unit1Path);
+        
+        List<int> enemies = api.SenseNearbyByTeam(idPlayer1, -myTeamId);
+        if (enemies.Count > 0 && api.TargetInSight(idPlayer1, enemies[0]))
+        {
+            api.LookAtDirection(idPlayer1, api.AngleBetweenUnits(idPlayer1, enemies[0]));
+            if (!api.CanFire(idPlayer1) && once)
+            {
+                api.ReloadWeapon(idPlayer1);
+                once = false;
+                //do some awesome evade tactic
+            }
+            else
+            {
+                api.Attack(idPlayer1);
+            }
+        }
+        if(api.GetMagazineAmmunition(idPlayer1, Weapon.Pistol) == 0)
+        {
+            once = true;
+        }
+        else
+        {
+            unit1Path = FollowPath(idPlayer1, unit1Path);
+        }
         /*
 
         foreach (int unitId in myUnits)
@@ -113,10 +145,58 @@ public class AI2 : MonoBehaviour
     {
         float direction = api.AngleBetweenUnitWorldpos(unitID, targetWorldPos);
         api.Move(unitID, direction);
+        api.LookAtDirection(unitID, direction);
+    }
+
+    public Node GetClosestTraversableNode(Node start, Node goal)
+    {
+        //Hittar den nod som ligger närmst start, bredvid goal, som är traversable
+        Vector2Int nodedir = AngleToNode(Vector2.SignedAngle(Vector2.right, goal.position - start.position));
+        return initialized_map[goal.x_grid + nodedir.x, goal.y_grid + nodedir.y];
+    }
+
+    public Vector2Int AngleToNode(float angle)
+    {
+        if(Mathf.Abs(angle) < 22.5f)
+        {
+            return new Vector2Int(1, 0);
+        }
+        else if(angle < 67.5f && angle > 0)
+        {
+            return new Vector2Int(1, 1);
+        }
+        else if(angle > -67.5f && angle < 0)
+        {
+            return new Vector2Int(1, -1);
+        }
+        else if(angle < 112.5f && angle > 0)
+        {
+            return new Vector2Int(0, 1);
+        }
+        else if(angle > -112.5f && angle < 0)
+        {
+            return new Vector2Int(0, -1);
+        }
+        else if(angle < 157.5f && angle > 0)
+        {
+            return new Vector2Int(-1, 1);
+        }
+        else if(angle > -157.5f && angle < 0)
+        {
+            return new Vector2Int(-1, -1);
+        }
+        else
+        {
+            return new Vector2Int(-1, 0);
+        }
     }
 
     public List<Node> FindPath(Node start, Node goal)
     {
+        if (!goal.traversable)
+        {
+            goal = GetClosestTraversableNode(start, goal);
+        }
         List<Node> open = new List<Node>();
         List<Node> closed = new List<Node>();
         open.Add(start);
