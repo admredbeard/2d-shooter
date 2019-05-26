@@ -34,12 +34,9 @@ public class AI1 : MonoBehaviour
     {
         foreach (int unitId in myUnits)
         {
-
             zonePos = api.GetZonePosition();
             myGrid = api.GetGridPos(unitId);
-            LetsMove(unitId,zonePos);
             int target = GetBestVisualTarget(unitId);
-
             if (target != unitId)
             {
                 if (api.WeaponSwapCooldown(unitId) < 0 && api.FireCooldown(unitId) < 0)
@@ -264,7 +261,7 @@ public class AI1 : MonoBehaviour
                 }
                 else if (range < closestRange)
                 {
-                    bestTargetId = enemy;
+                    //bestTargetId = enemy;
                     closestRange = range;
                 }
             }
