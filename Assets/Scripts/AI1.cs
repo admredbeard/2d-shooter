@@ -14,6 +14,7 @@ public class AI1 : MonoBehaviour
     Vector2Int myGrid;
     Vector2 zonePos;
     int mapSize;
+    Vector2Int targetPos;
 
     void Start()
     {
@@ -22,6 +23,7 @@ public class AI1 : MonoBehaviour
         myUnits = api.GetPlayers(myTeamId);
         map = api.GetMap();
         mapSize = api.GetMapSize();
+        targetPos = api.GetGridPos(myUnits[0]);
     }
 
     float shotGunRange = 10f;
@@ -35,8 +37,8 @@ public class AI1 : MonoBehaviour
 
             zonePos = api.GetZonePosition();
             myGrid = api.GetGridPos(unitId);
-            LetsMove(unitId);
-            int target = GetBestTargetNearby(unitId);
+            LetsMove(unitId,zonePos);
+            int target = GetBestVisualTarget(unitId);
 
             if (target != unitId)
             {
@@ -94,87 +96,99 @@ public class AI1 : MonoBehaviour
             }
         }
     }
-    void LetsMove(int unitId)
+    void LetsMove(int unitId, Vector2 pos)
     {
-        UberMoveFunction(unitId, zonePos);
+
+        //if(Vector3.Distance(api.GetWorldPosition(unitId), lastPos) < 0.1)
+        //ChangeAngle(unitId, zonePos);
+
+        if(Vector2.Distance(api.GetWorldPosition(unitId), api.GetWorldPosFromGridPos(targetPos.x, targetPos.y)) < 2)
+        {
+            targetPos = api.GetGridPosFromWorldPos(pos);
+        }
+        
+        float moveAngle = ChangeAngle(unitId, targetPos);
+        api.Move(unitId, moveAngle);
+        
     }
 
     
-    void UberMoveFunction(int unitId, Vector2 targetPos)
+    float ChangeAngle(int unitId, Vector2Int gridPos)
     {
-        float angle = api.AngleBetweenUnitWorldpos(unitId, targetPos);
+        float angle = api.AngleBetweenUnitGridpos(unitId, gridPos);
         if(angle >= -45 && angle < 45)
         {
             if(myGrid.x + 1 < mapSize && map[myGrid.x + 1, myGrid.y])
             {
-                api.Move(unitId, 0);
-                return;
+                targetPos = api.GetGridPos(unitId) + Vector2Int.right;
+                return api.AngleBetweenUnitGridpos(unitId, api.GetGridPos(unitId) + Vector2Int.right);
             }
             else if (myGrid.y + 1 < mapSize && map[myGrid.x, myGrid.y + 1])
             {
-                api.Move(unitId, 90);
-                return;
+                targetPos = api.GetGridPos(unitId) + Vector2Int.up;
+                return api.AngleBetweenUnitGridpos(unitId, api.GetGridPos(unitId) + Vector2Int.up);
             }
             else if (myGrid.y != 0 && map[myGrid.x, myGrid.y - 1])
             {
-                api.Move(unitId, -90);
-                return;
+                targetPos = api.GetGridPos(unitId) - Vector2Int.up;
+                return api.AngleBetweenUnitGridpos(unitId, api.GetGridPos(unitId) - Vector2Int.up);
             }
         }
         else if(angle >= 45 && angle < 135)
         {
             if (myGrid.y + 1 < mapSize && map[myGrid.x, myGrid.y + 1])
             {
-                api.Move(unitId, 90);
-                return;
+                targetPos = api.GetGridPos(unitId) + Vector2Int.up;
+                return api.AngleBetweenUnitGridpos(unitId, api.GetGridPos(unitId) + Vector2Int.up);
             }
             else if (myGrid.x + 1 < mapSize && map[myGrid.x + 1, myGrid.y])
             {
-                api.Move(unitId, 0);
-                return;
+                targetPos = api.GetGridPos(unitId) + Vector2Int.right;
+                return api.AngleBetweenUnitGridpos(unitId, api.GetGridPos(unitId) + Vector2Int.right);
             }
             else if (myGrid.x != 0 && map[myGrid.x - 1, myGrid.y])
-            {
-                api.Move(unitId, 180);
-                return;
+            { 
+                targetPos = api.GetGridPos(unitId) - Vector2Int.right;
+                return api.AngleBetweenUnitGridpos(unitId, api.GetGridPos(unitId) - Vector2Int.right);
             }
         }
         else if (angle >= -135 && angle < -45)
         {
             if (myGrid.y != 0 && map[myGrid.x, myGrid.y - 1])
             {
-                api.Move(unitId, -90);
-                return;
+                targetPos = api.GetGridPos(unitId) - Vector2Int.up;
+                return api.AngleBetweenUnitGridpos(unitId, api.GetGridPos(unitId) - Vector2Int.up);
             }
             else if (map[myGrid.x + 1, myGrid.y])
             {
-                api.Move(unitId, 0);
-                return;
+                targetPos = api.GetGridPos(unitId) + Vector2Int.right;
+                return api.AngleBetweenUnitGridpos(unitId, api.GetGridPos(unitId) + Vector2Int.right);
             }
             else if (myGrid.x != 0 && map[myGrid.x - 1, myGrid.y])
             {
-                api.Move(unitId, 180);
-                return;
+                targetPos = api.GetGridPos(unitId) - Vector2Int.right;
+                return api.AngleBetweenUnitGridpos(unitId, api.GetGridPos(unitId) - Vector2Int.right);
             }
         }
         else if (angle >= 135 || angle < -135)
         {
             if (myGrid.x != 0 && map[myGrid.x - 1, myGrid.y])
             {
-                api.Move(unitId, 180);
-                return;
+                targetPos = api.GetGridPos(unitId) - Vector2Int.right;
+                return api.AngleBetweenUnitGridpos(unitId, api.GetGridPos(unitId) - Vector2Int.right);
             }
             else if (myGrid.y + 1 < mapSize && map[myGrid.x, myGrid.y + 1])
             {
-                api.Move(unitId, 90);
-                return;
+                targetPos = api.GetGridPos(unitId) + Vector2Int.up;
+                return api.AngleBetweenUnitGridpos(unitId, api.GetGridPos(unitId) + Vector2Int.up);
             }
             else if (myGrid.y != 0 && map[myGrid.x, myGrid.y - 1])
             {
-                api.Move(unitId, -90);
-                return;
+                targetPos = api.GetGridPos(unitId) - Vector2Int.up;
+                return api.AngleBetweenUnitGridpos(unitId, api.GetGridPos(unitId) - Vector2Int.up);
             }
         }
+        return 0;
     }
 
     void ReadyAimFire(int unitId, float range)
