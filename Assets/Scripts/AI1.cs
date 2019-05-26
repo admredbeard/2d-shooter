@@ -8,13 +8,20 @@ public class AI1 : MonoBehaviour
     GameController gc;
     List<int> myUnits; // These are the players you can control
     int myTeamId; //This id is used for certain API calls and is unique for your team
-    int globalTarget = 10; // We use 10 for saying that there is no global target
+
+    int globalTarget = 10;
+    bool[,] map;
+    Vector2Int myGrid;
+    Vector2 zonePos;
+    int mapSize;
 
     void Start()
     {
         api = gameObject.GetComponent<APIScript>();
         myTeamId = api.teamId;
         myUnits = api.GetPlayers(myTeamId);
+        map = api.GetMap();
+        mapSize = api.GetMapSize();
     }
 
     float shotGunRange = 10f;
@@ -25,7 +32,12 @@ public class AI1 : MonoBehaviour
     {
         foreach (int unitId in myUnits)
         {
-            int target = GetBestVisualTarget(unitId);
+
+            zonePos = api.GetZonePosition();
+            myGrid = api.GetGridPos(unitId);
+            LetsMove(unitId);
+            int target = GetBestTargetNearby(unitId);
+
             if (target != unitId)
             {
                 if (api.WeaponSwapCooldown(unitId) < 0 && api.FireCooldown(unitId) < 0)
@@ -79,6 +91,88 @@ public class AI1 : MonoBehaviour
                     }
 
                 }
+            }
+        }
+    }
+    void LetsMove(int unitId)
+    {
+        UberMoveFunction(unitId, zonePos);
+    }
+
+    
+    void UberMoveFunction(int unitId, Vector2 targetPos)
+    {
+        float angle = api.AngleBetweenUnitWorldpos(unitId, targetPos);
+        if(angle >= -45 && angle < 45)
+        {
+            if(myGrid.x + 1 < mapSize && map[myGrid.x + 1, myGrid.y])
+            {
+                api.Move(unitId, 0);
+                return;
+            }
+            else if (myGrid.y + 1 < mapSize && map[myGrid.x, myGrid.y + 1])
+            {
+                api.Move(unitId, 90);
+                return;
+            }
+            else if (myGrid.y != 0 && map[myGrid.x, myGrid.y - 1])
+            {
+                api.Move(unitId, -90);
+                return;
+            }
+        }
+        else if(angle >= 45 && angle < 135)
+        {
+            if (myGrid.y + 1 < mapSize && map[myGrid.x, myGrid.y + 1])
+            {
+                api.Move(unitId, 90);
+                return;
+            }
+            else if (myGrid.x + 1 < mapSize && map[myGrid.x + 1, myGrid.y])
+            {
+                api.Move(unitId, 0);
+                return;
+            }
+            else if (myGrid.x != 0 && map[myGrid.x - 1, myGrid.y])
+            {
+                api.Move(unitId, 180);
+                return;
+            }
+        }
+        else if (angle >= -135 && angle < -45)
+        {
+            if (myGrid.y != 0 && map[myGrid.x, myGrid.y - 1])
+            {
+                api.Move(unitId, -90);
+                return;
+            }
+            else if (map[myGrid.x + 1, myGrid.y])
+            {
+                api.Move(unitId, 0);
+                return;
+            }
+            else if (myGrid.x != 0 && map[myGrid.x - 1, myGrid.y])
+            {
+                api.Move(unitId, 180);
+                return;
+            }
+        }
+        else if (angle >= 135 || angle < -135)
+        {
+            if (myGrid.x != 0 && map[myGrid.x - 1, myGrid.y])
+            {
+                api.Move(unitId, 180);
+                return;
+            }
+            else if (myGrid.y + 1 < mapSize && map[myGrid.x, myGrid.y + 1])
+            {
+                api.Move(unitId, 90);
+                return;
+            }
+            else if (myGrid.y != 0 && map[myGrid.x, myGrid.y - 1])
+            {
+                api.Move(unitId, -90);
+                return;
             }
         }
     }
