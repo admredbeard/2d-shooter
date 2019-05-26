@@ -167,7 +167,7 @@ public class APIScript : MonoBehaviour
 
     public bool WorldPositionInSight(int unitId, Vector2 worldPosition)
     {
-        if (CheckIfCorrectTeam(unitId))
+        if (CheckIfCorrectTeam(unitId) || CheckIfInVision(unitId))
             return mb.WorldPositionInSight(unitId, worldPosition);
         else
             throw new System.UnauthorizedAccessException("Error: Unit must on your team");
@@ -176,7 +176,7 @@ public class APIScript : MonoBehaviour
     public bool GridPositionInSight(int unitId, Vector2Int gridPosition)
     {
         //Unit must be on your team
-        if (CheckIfCorrectTeam(unitId))
+        if (CheckIfCorrectTeam(unitId) || CheckIfInVision(unitId))
             return mb.GridPositionInSight(unitId, gridPosition);
         else
             throw new System.UnauthorizedAccessException("Error: Unit must on your team");

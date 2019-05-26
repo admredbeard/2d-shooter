@@ -37,7 +37,7 @@ public class AI1 : MonoBehaviour
 
             zonePos = api.GetZonePosition();
             myGrid = api.GetGridPos(unitId);
-            LetsMove(unitId,zonePos);
+            LetsMove(unitId, zonePos);
             int target = GetBestVisualTarget(unitId);
 
             if (target != unitId)
@@ -102,23 +102,23 @@ public class AI1 : MonoBehaviour
         //if(Vector3.Distance(api.GetWorldPosition(unitId), lastPos) < 0.1)
         //ChangeAngle(unitId, zonePos);
 
-        if(Vector2.Distance(api.GetWorldPosition(unitId), api.GetWorldPosFromGridPos(targetPos.x, targetPos.y)) < 2)
+        if (Vector2.Distance(api.GetWorldPosition(unitId), api.GetWorldPosFromGridPos(targetPos.x, targetPos.y)) < 2)
         {
             targetPos = api.GetGridPosFromWorldPos(pos);
         }
-        
+
         float moveAngle = ChangeAngle(unitId, targetPos);
         api.Move(unitId, moveAngle);
-        
+
     }
 
-    
+
     float ChangeAngle(int unitId, Vector2Int gridPos)
     {
         float angle = api.AngleBetweenUnitGridpos(unitId, gridPos);
-        if(angle >= -45 && angle < 45)
+        if (angle >= -45 && angle < 45)
         {
-            if(myGrid.x + 1 < mapSize && map[myGrid.x + 1, myGrid.y])
+            if (myGrid.x + 1 < mapSize && map[myGrid.x + 1, myGrid.y])
             {
                 targetPos = api.GetGridPos(unitId) + Vector2Int.right;
                 return api.AngleBetweenUnitGridpos(unitId, api.GetGridPos(unitId) + Vector2Int.right);
@@ -134,7 +134,7 @@ public class AI1 : MonoBehaviour
                 return api.AngleBetweenUnitGridpos(unitId, api.GetGridPos(unitId) - Vector2Int.up);
             }
         }
-        else if(angle >= 45 && angle < 135)
+        else if (angle >= 45 && angle < 135)
         {
             if (myGrid.y + 1 < mapSize && map[myGrid.x, myGrid.y + 1])
             {
@@ -147,7 +147,7 @@ public class AI1 : MonoBehaviour
                 return api.AngleBetweenUnitGridpos(unitId, api.GetGridPos(unitId) + Vector2Int.right);
             }
             else if (myGrid.x != 0 && map[myGrid.x - 1, myGrid.y])
-            { 
+            {
                 targetPos = api.GetGridPos(unitId) - Vector2Int.right;
                 return api.AngleBetweenUnitGridpos(unitId, api.GetGridPos(unitId) - Vector2Int.right);
             }
@@ -271,5 +271,55 @@ public class AI1 : MonoBehaviour
         }
 
         return bestTargetId;
+    }
+
+    Vector2 FindLoSPosition(int unitId, int targetId)
+    {
+
+        bool[,] map = api.GetMap();
+        Vector2Int myPosition = api.GetGridPos(unitId);
+        Vector2Int bestPos = myPosition;
+        float bestRange = 0f;
+
+        foreach (Vector2Int grid in GetNeighbourGrids(myPosition, map, 5))
+        {
+            if (api.GridPositionInSight(targetId, grid))
+            {
+                float range = (myPosition - grid).magnitude;
+                if (range < bestRange)
+                {
+                    bestRange = range;
+                    bestPos = grid;
+                }
+            }
+        }
+
+        return api.GetWorldPosFromGridPos(bestPos);
+    }
+
+    List<Vector2Int> GetNeighbourGrids(Vector2Int currentPos, bool[,] map, int range)
+    {
+        List<Vector2Int> neighbours = new List<Vector2Int>();
+
+        for (int i = -range + 1; i < range; i++)
+        {
+            for (int j = -range + 1; j < 2; j++)
+            {
+                if (currentPos.x + i >= 0 && currentPos.y + j >= 0)
+                {
+                    if (j != 0 && i != 0)
+                    {
+                        if (map[currentPos.x + i, currentPos.y + j])
+                            neighbours.Add(new Vector2Int(currentPos.x + i, currentPos.y + j));
+                    }
+                }
+            }
+        }
+        return neighbours;
+    }
+
+    Vector2 GetMapMiddle()
+    {
+        return new Vector2(api.GetMapSize() * 2.5f / 2, api.GetMapSize() * 2.5f / 2);
     }
 }
