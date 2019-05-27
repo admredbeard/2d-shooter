@@ -5,11 +5,8 @@ using UnityEngine;
 public class AI1 : MonoBehaviour
 {
     APIScript api;
-    GameController gc;
     List<int> myUnits; // These are the players you can control
     int myTeamId; //This id is used for certain API calls and is unique for your team
-
-    int globalTarget = 10;
     Node[,] worldMap;
     bool[,] map;
     Vector2Int myGrid;
@@ -17,12 +14,10 @@ public class AI1 : MonoBehaviour
     float zoneRadius;
     int mapSize;
     Vector2Int targetPos;
-    List<Node> path;
     List<Unit> units; //Unit class found at bottom of script, used to store goals and paths
     int stuckCount = 20;
     void Start()
     {
-        path = new List<Node>();
         api = gameObject.GetComponent<APIScript>();
         worldMap = CreateMap();
         myTeamId = api.teamId;
@@ -60,7 +55,31 @@ public class AI1 : MonoBehaviour
             int target = GetBestVisualTarget(unitId);
             if (target != unitId)
             {
-                if (api.WeaponSwapCooldown(unitId) < 0 && api.FireCooldown(unitId) < 0)
+                if (currentUnit.knifeMode)
+                {
+                    if ((api.GetWorldPosition(unitId) - api.GetWorldPosition(target)).magnitude < 2f)
+                    {
+                        api.Attack(unitId);
+                    }
+                    else if (zonePos != Vector2.zero)
+                    {
+                        if ((api.GetWorldPosition(unitId) - zonePos).magnitude < zoneRadius)
+                        {
+                            Vector2 tarPos = api.GetWorldPosition(target);
+                            if (currentUnit.goal != tarPos)
+                            {
+                                currentUnit.goal = tarPos;
+                                GetNewPath(currentUnit, tarPos);
+                            }
+                        }
+                        else if (currentUnit.goal != zonePos)
+                        {
+                            currentUnit.goal = zonePos;
+                            GetNewPath(currentUnit, zonePos);
+                        }
+                    }
+                }
+                else if (api.WeaponSwapCooldown(unitId) < 0 && api.FireCooldown(unitId) < 0)
                 {
                     float angle = api.AngleBetweenUnits(unitId, target);
                     api.LookAtDirection(unitId, angle);
@@ -74,9 +93,10 @@ public class AI1 : MonoBehaviour
                     {
                         //We are in zone, enemy is clear line of sight, take cover since we cant shoot?
                     }
-                    else
+                    else if (currentUnit.goal != zonePos)
                     {
-                        //Move out of line of sight towards zone?
+                        currentUnit.goal = zonePos;
+                        GetNewPath(currentUnit, zonePos);
                     }
                 }
             }
@@ -88,29 +108,35 @@ public class AI1 : MonoBehaviour
                 {
 
                     List<int> nearbyTeammates = api.SenseNearbyByTeam(unitId, myTeamId);
-                    int bestEnemy = FindNearestEnemy(unitId, nearby));
+                    int bestEnemy = FindNearestEnemy(unitId, nearby);
                     if (zonePos != Vector2.zero && (myPosition - zonePos).magnitude < zoneRadius)
 
                     {
                         if (nearbyTeammates.Count + 1 > nearby.Count)
                         {
-                            GetNewPath(currentUnit, FindLoSPosition(unitId, bestEnemy));
+                            Vector2 goalPos = FindLoSPosition(unitId, bestEnemy);
+                            GetNewPath(currentUnit, goalPos);
                         }
                         else if (nearbyTeammates.Count + 1 == nearby.Count)
                         {
-
+                            float myHp = api.GetHealth(unitId);
+                            float enemyHp = api.GetHealth(bestEnemy);
+                            if (myHp > enemyHp)
+                            {
+                                Vector2 goalPos = FindLoSPosition(unitId, bestEnemy);
+                                GetNewPath(currentUnit, goalPos);
+                                currentUnit.goal = goalPos;
+                            }
                         }
-                        float myHp = api.GetHealth(unitId);
-                        float enemyHp = api.GetHealth(unitId);
-
-
-                        //We are in zone, enemy is probabyly too, do we chill?
+                        else
+                        {
+                            //We are outnumbered or enemies with higher health, find cover?
+                        }
                     }
                     else if (zonePos != Vector2.zero)
                     {
                         currentUnit.goal = zonePos;
                         GetNewPath(currentUnit, zonePos);
-                        //Move to Zone, Watch out for enemies
                     }
                 }
                 else if (zonePos != Vector2.zero)
@@ -121,13 +147,11 @@ public class AI1 : MonoBehaviour
                     }
                     else if (currentUnit.goal != zonePos)
                     {
-                        //If we are not going towards the zone, set the zone as our goal and get a path
                         currentUnit.goal = zonePos;
                         GetNewPath(currentUnit, zonePos);
                     }
                 }
             }
-            //Last thing we want to do is check if we have a path, if we do lets traverse it
 
             if (currentUnit.myPath.Count > 0)
             {
@@ -147,16 +171,19 @@ public class AI1 : MonoBehaviour
         return units[0];
     }
 
-    int FindNearestEnemy(int unitId, List <int> enemies){
+    int FindNearestEnemy(int unitId, List<int> enemies)
+    {
 
         Vector2 myPos = api.GetWorldPosition(unitId);
         float bestRange = 10000f;
         float range = 0f;
         int bestTarget = unitId;
 
-        foreach(int enemy in enemies){
+        foreach (int enemy in enemies)
+        {
             range = (myPos - api.GetWorldPosition(enemy)).magnitude;
-            if(range < bestRange){
+            if (range < bestRange)
+            {
                 bestTarget = enemy;
                 bestRange = range;
             }
@@ -371,6 +398,7 @@ public class AI1 : MonoBehaviour
 
         float closestRange = 10000f;
         int bestTargetId = unitId;
+        List<int> visitedEnemies = new List<int>();
         Vector2 unitPosition = api.GetWorldPosition(unitId);
         foreach (int id in myUnits)
         {
@@ -381,19 +409,23 @@ public class AI1 : MonoBehaviour
             {
                 foreach (int enemy in enemies)
                 {
-                    float range = Vector3.Distance(unitPosition, api.GetWorldPosition(enemy));
-                    if (api.TargetInSight(unitId, enemy))
+                    if (!visitedEnemies.Contains(enemy))
                     {
-                        if (bestTargetInVision)
+                        visitedEnemies.Add(enemy);
+                        float range = Vector3.Distance(unitPosition, api.GetWorldPosition(enemy));
+                        if (api.TargetInSight(unitId, enemy))
                         {
-                            if (range < closestRange)
+                            if (bestTargetInVision)
+                            {
+                                if (range < closestRange)
+                                    bestTargetId = enemy;
+                            }
+                            else
+                            {
+                                bestTargetInVision = true;
                                 bestTargetId = enemy;
-                        }
-                        else
-                        {
-                            bestTargetInVision = true;
-                            bestTargetId = enemy;
-                            closestRange = range;
+                                closestRange = range;
+                            }
                         }
                     }
                 }
@@ -412,7 +444,7 @@ public class AI1 : MonoBehaviour
 
         float bestRange = 0f;
 
-        foreach (Node node in GetNeighbourNodes(myPosition, 5))
+        foreach (Node node in GetNeighbourNodes(myPosition, 3))
         {
             if (api.WorldPositionInSight(targetId, node.position))
             {
@@ -504,6 +536,9 @@ public class AI1 : MonoBehaviour
                 }
             }
         }
+        goal.goaled = true;
+        start.goaled = true;
+        print("goal: " + goal.position + " start: " + start.position);
         print("Could not find path after: " + count + " iterations");
         return new List<Node>();
     }
@@ -541,11 +576,11 @@ public class AI1 : MonoBehaviour
         float z = Mathf.Abs(nodeA.position.y - nodeB.position.y);
         if (x > z)
         {
-            return (x - z) * 14 + z * 10;
+            return (x - z) * 10 + z * 14;
         }
         else
         {
-            return (z - x) * 14 + x * 10;
+            return (z - x) * 10 + x * 14;
         }
 
     }
@@ -601,7 +636,7 @@ public class AI1 : MonoBehaviour
                             neighbours.Add(worldMap[x, y]);
                     }
                 }
-                else
+                else if (!(i == 0 && j == 0))
                 {
                     int x = node.xGrid + i;
                     int y = node.yGrid + j;
@@ -661,6 +696,7 @@ public class AI1 : MonoBehaviour
 
     void OnDrawGizmos()
     {
+
         if (worldMap != null && units[0].myPath != null)
         {
             foreach (Node node in worldMap)
@@ -696,6 +732,17 @@ public class AI1 : MonoBehaviour
                 {
                     Gizmos.color = Color.blue;
                     Gizmos.DrawCube(node.position, new Vector3(1f, 1f, 1f));
+                }
+            }
+        }
+        if (worldMap != null)
+        {
+            foreach (Node node in worldMap)
+            {
+                if (node.goaled)
+                {
+                    Gizmos.color = Color.black;
+                    Gizmos.DrawCube(node.position, new Vector3(1.5f, 1.5f, 1.5f));
                 }
             }
         }
@@ -736,6 +783,8 @@ public class AI1 : MonoBehaviour
                 {
                     api.ReloadWeapon(unitId);
                 }
+                else if (GetTotalAmmo(unitId, currentWeapon) > 0 && api.GetMagazineAmmunition(unitId, currentWeapon) == 0)
+                    api.ReloadWeapon(unitId);
 
             }
 
@@ -783,6 +832,8 @@ class Node
     public int yGrid;
     public Node parent;
     public Node child;
+
+    public bool goaled = false;
     public Node(bool _traversable, Vector2 _position, int x, int y)
     {
         traversable = _traversable;
