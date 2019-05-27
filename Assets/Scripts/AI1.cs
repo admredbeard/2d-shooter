@@ -134,7 +134,7 @@ public class AI1 : MonoBehaviour
             if (Vector2.Distance(pos, target) < 2f)
             {
                 unit.iteration++;
-                if(unit.iteration < unit.myPath.Count)
+                if (unit.iteration < unit.myPath.Count)
                     target = unit.myPath[unit.iteration].position;
             }
             if (stuckCount > 100 && unit.myPath != null)
@@ -449,11 +449,11 @@ public class AI1 : MonoBehaviour
         float z = Mathf.Abs(nodeA.position.y - nodeB.position.y);
         if (x > z)
         {
-            return x + z;
+            return (x - z) * 14 + z * 10;
         }
         else
         {
-            return x + z;
+            return (z - x) * 14 + x * 10;
         }
 
     }
@@ -463,54 +463,63 @@ public class AI1 : MonoBehaviour
         List<Node> neighbours = new List<Node>();
         bool[,] map = api.GetMap();
         int size = api.GetMapSize();
-        /* 
+
         for (int i = -1; i < 2; i++)
         {
             for (int j = -1; j < 2; j++)
             {
-                if (Mathf.Abs(i) != Mathf.Abs(j))
+
+                if (i == -1 && j == -1)
                 {
                     int x = node.xGrid + i;
                     int y = node.yGrid + j;
-
+                    if (x + 1 > 0 && y + 1 > 0 && y + 1 < size && x + 1 < size)
+                    {
+                        if (worldMap[x + 1, y].traversable && worldMap[x, y + 1].traversable)
+                            neighbours.Add(worldMap[x, y]);
+                    }
+                }
+                else if (i == -1 && j == 1)
+                {
+                    int x = node.xGrid + i;
+                    int y = node.yGrid + j;
+                    if (x + 1 > 0 && y - 1 > 0 && y - 1 < size && x + 1 < size)
+                    {
+                        if (worldMap[x + 1, y].traversable && worldMap[x, y - 1].traversable)
+                            neighbours.Add(worldMap[x, y]);
+                    }
+                }
+                else if (i == 1 && j == -1)
+                {
+                    int x = node.xGrid + i;
+                    int y = node.yGrid + j;
+                    if (x - 1 > 0 && y + 1 > 0 && y + 1 < size && x - 1 < size)
+                    {
+                        if (worldMap[x - 1, y].traversable && worldMap[x, y + 1].traversable)
+                            neighbours.Add(worldMap[x, y]);
+                    }
+                }
+                else if (i == 1 && j == 1)
+                {
+                    int x = node.xGrid + i;
+                    int y = node.yGrid + j;
+                    if (x - 1 > 0 && y - 1 > 0 && y - 1 < size && x - 1 < size)
+                    {
+                        if (worldMap[x - 1, y].traversable && worldMap[x, y - 1].traversable)
+                            neighbours.Add(worldMap[x, y]);
+                    }
+                }
+                else
+                {
+                    int x = node.xGrid + i;
+                    int y = node.yGrid + j;
                     if (x >= 0 && y >= 0 && size > x && size > y)
                     {
                         neighbours.Add(worldMap[x, y]);
                     }
                 }
             }
-        }*/
-
-        int x = node.xGrid + 1;
-        int y = node.yGrid;
-
-        if (x >= 0 && y >= 0 && size > x && size > y)
-        {
-            neighbours.Add(worldMap[x, y]);
         }
-
-        x = node.xGrid - 1;
-        if (x >= 0 && y >= 0 && size > x && size > y)
-        {
-            neighbours.Add(worldMap[x, y]);
-        }
-
-        x = node.xGrid;
-        y = node.yGrid + 1;
-
-        if (x >= 0 && y >= 0 && size > x && size > y)
-        {
-            neighbours.Add(worldMap[x, y]);
-        }
-
-        x = node.xGrid;
-        y = node.yGrid - 1;
-
-        if (x >= 0 && y >= 0 && size > x && size > y)
-        {
-            neighbours.Add(worldMap[x, y]);
-        }
-
         return neighbours;
     }
 
@@ -553,21 +562,28 @@ public class AI1 : MonoBehaviour
                     Gizmos.color = Color.red;
                     Gizmos.DrawCube(node.position, new Vector3(1f, 1f, 1f));
                 }
-                /*
-                if (node != null)
+            }
+        }
+        if (worldMap != null && units[1].myPath != null)
+        {
+            foreach (Node node in worldMap)
+            {
+                if (units[0].myPath.Contains(node))
                 {
-                    if (node.traversable)
-                    {
-                        Gizmos.color = Color.yellow;
-                        Gizmos.DrawCube(node.position, new Vector3(1f, 1f, 1f));
-                    }
-                    else
-                    {
-                        Gizmos.color = Color.red;
-                        Gizmos.DrawCube(node.position, new Vector3(1f, 1f, 1f));
-                    }
-
-                }*/
+                    Gizmos.color = Color.gray;
+                    Gizmos.DrawCube(node.position, new Vector3(1f, 1f, 1f));
+                }
+            }
+        }
+        if (worldMap != null && units[2].myPath != null)
+        {
+            foreach (Node node in worldMap)
+            {
+                if (units[0].myPath.Contains(node))
+                {
+                    Gizmos.color = Color.blue;
+                    Gizmos.DrawCube(node.position, new Vector3(1f, 1f, 1f));
+                }
             }
         }
     }
