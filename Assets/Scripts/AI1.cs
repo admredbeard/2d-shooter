@@ -87,8 +87,22 @@ public class AI1 : MonoBehaviour
                 Vector2 zonePosition = api.GetZonePosition();
                 if (nearby.Count > 0)
                 {
+                    List<int> nearbyTeammates = api.SenseNearbyByTeam(unitId, myTeamId);
+                    int bestEnemy = FindNearestEnemy(unitId, nearby));
                     if (zonePosition != Vector2.zero && (myPosition - zonePosition).magnitude < 15f)
                     {
+                        if (nearbyTeammates.Count + 1 > nearby.Count)
+                        {
+                            GetNewPath(currentUnit, FindLoSPosition(unitId, bestEnemy));
+                        }
+                        else if (nearbyTeammates.Count + 1 == nearby.Count)
+                        {
+
+                        }
+                        float myHp = api.GetHealth(unitId);
+                        float enemyHp = api.GetHealth(unitId);
+
+
                         //We are in zone, enemy is probabyly too, do we chill?
                     }
                     else if (zonePosition != Vector2.zero)
@@ -113,7 +127,7 @@ public class AI1 : MonoBehaviour
                 }
             }
             //Last thing we want to do is check if we have a path, if we do lets traverse it
-            if(currentUnit.myPath.Count > 0)
+            if (currentUnit.myPath.Count > 0)
             {
                 LetsMove(currentUnit);
             }
@@ -131,6 +145,23 @@ public class AI1 : MonoBehaviour
         return units[0];
     }
 
+    int FindNearestEnemy(int unitId, List <int> enemies){
+
+        Vector2 myPos = api.GetWorldPosition(unitId);
+        float bestRange = 10000f;
+        float range = 0f;
+        int bestTarget = unitId;
+
+        foreach(int enemy in enemies){
+            range = (myPos - api.GetWorldPosition(enemy)).magnitude;
+            if(range < bestRange){
+                bestTarget = enemy;
+                bestRange = range;
+            }
+        }
+
+        return bestTarget;
+    }
     void LetsMove(Unit unit)
     {
         Vector2 pos = api.GetWorldPosition(unit.myId);
@@ -196,7 +227,7 @@ public class AI1 : MonoBehaviour
                 return api.AngleBetweenUnitGridpos(unitId, api.GetGridPos(unitId) - Vector2Int.up);
             }
         }
-        else if(angle >= 22.5f && angle < 67.5f)
+        else if (angle >= 22.5f && angle < 67.5f)
         {
             targetPos = api.GetGridPos(unitId) + Vector2Int.up;
             return api.AngleBetweenUnitGridpos(unitId, api.GetGridPos(unitId) + Vector2Int.up + Vector2Int.right);
@@ -286,7 +317,6 @@ public class AI1 : MonoBehaviour
         }
         else
         {
-            print(currentWeapon);
             SwapWeapon(unitId, range);
         }
     }
@@ -310,9 +340,6 @@ public class AI1 : MonoBehaviour
         int shotgunAmmo = GetTotalAmmo(unitId, Weapon.Shotgun);
         int pistolAmmo = GetTotalAmmo(unitId, Weapon.Pistol);
         int rifleAmmo = GetTotalAmmo(unitId, Weapon.Rifle);
-        print("Shotgun: " + shotgunAmmo);
-        print("Pistol: " + pistolAmmo);
-        print("Rifle: " + rifleAmmo);
 
         if (range < shotGunRange && shotgunAmmo > 0)
             api.SwapWeapon(unitId, Weapon.Shotgun);
@@ -324,8 +351,12 @@ public class AI1 : MonoBehaviour
             api.SwapWeapon(unitId, Weapon.Pistol);
         else if (shotgunAmmo > 0)
             api.SwapWeapon(unitId, Weapon.Pistol);
-        else
+        else if (api.GetWeapon(unitId) != Weapon.Knife)
             api.SwapWeapon(unitId, Weapon.Knife);
+        else
+        {
+            GetUnit(unitId).knifeMode = true;
+        }
     }
 
     int GetTotalAmmo(int unitId, Weapon weapon)
@@ -335,29 +366,33 @@ public class AI1 : MonoBehaviour
 
     int GetBestVisualTarget(int unitId)
     {
-        List<int> enemies = api.SenseNearbyByTeam(unitId, -myTeamId);
+
         float closestRange = 10000f;
         int bestTargetId = unitId;
-        bool bestTargetInVision = false;
-
-        if (enemies.Count > 0)
+        Vector2 unitPosition = api.GetWorldPosition(unitId);
+        foreach (int id in myUnits)
         {
-            Vector2 unitPosition = api.GetWorldPosition(unitId);
-            foreach (int enemy in enemies)
+            List<int> enemies = api.SenseNearbyByTeam(id, -myTeamId);
+            bool bestTargetInVision = false;
+
+            if (enemies.Count > 0)
             {
-                float range = Vector3.Distance(unitPosition, api.GetWorldPosition(enemy));
-                if (api.TargetInSight(unitId, enemy))
+                foreach (int enemy in enemies)
                 {
-                    if (bestTargetInVision)
+                    float range = Vector3.Distance(unitPosition, api.GetWorldPosition(enemy));
+                    if (api.TargetInSight(unitId, enemy))
                     {
-                        if (range < closestRange)
+                        if (bestTargetInVision)
+                        {
+                            if (range < closestRange)
+                                bestTargetId = enemy;
+                        }
+                        else
+                        {
+                            bestTargetInVision = true;
                             bestTargetId = enemy;
-                    }
-                    else
-                    {
-                        bestTargetInVision = true;
-                        bestTargetId = enemy;
-                        closestRange = range;
+                            closestRange = range;
+                        }
                     }
                 }
             }
@@ -370,41 +405,45 @@ public class AI1 : MonoBehaviour
     {
 
         bool[,] map = api.GetMap();
-        Vector2Int myPosition = api.GetGridPos(unitId);
-        Vector2Int bestPos = myPosition;
+        Vector2 myPosition = api.GetWorldPosition(unitId);
+        Node bestNode = worldMap[GetXPos(myPosition.x), GetYPos(myPosition.y)];
+
         float bestRange = 0f;
 
-        foreach (Vector2Int grid in GetNeighbourGrids(myPosition, map, 5))
+        foreach (Node node in GetNeighbourNodes(myPosition, 5))
         {
-            if (api.GridPositionInSight(targetId, grid))
+            if (api.WorldPositionInSight(targetId, node.position))
             {
-                float range = (myPosition - grid).magnitude;
+                float range = (myPosition - node.position).magnitude;
                 if (range < bestRange)
                 {
                     bestRange = range;
-                    bestPos = grid;
+                    bestNode = node;
                 }
             }
         }
 
-        return api.GetWorldPosFromGridPos(bestPos);
+        return bestNode.position;
     }
 
-    List<Vector2Int> GetNeighbourGrids(Vector2Int currentPos, bool[,] map, int range)
+    List<Node> GetNeighbourNodes(Vector2 currentPos, int range)
     {
-        List<Vector2Int> neighbours = new List<Vector2Int>();
+        List<Node> neighbours = new List<Node>();
+        Node currentNode = worldMap[GetXPos(currentPos.x), GetYPos(currentPos.y)];
         int size = api.GetMapSize();
 
         for (int i = -range + 1; i < range; i++)
         {
             for (int j = -range + 1; j < 2; j++)
             {
-                if (currentPos.x + i >= 0 && currentPos.y + j >= 0 && size > currentPos.x + i && currentPos.y + j < size)
+                int x = currentNode.xGrid + i;
+                int y = currentNode.yGrid + j;
+                if (x >= 0 && y >= 0 && size > x && y < size)
                 {
                     if (j != 0 && i != 0)
                     {
-                        if (map[currentPos.x + i, currentPos.y + j])
-                            neighbours.Add(new Vector2Int(currentPos.x + i, currentPos.y + j));
+                        if (worldMap[x, y].traversable)
+                            neighbours.Add(worldMap[x, y]);
                     }
                 }
             }
@@ -730,6 +769,7 @@ public class AI1 : MonoBehaviour
     }
 }
 
+
 class Node
 {
     public bool traversable = false;
@@ -762,6 +802,7 @@ class Unit
     public int myId;
     public int iteration;
     public Vector2 lastPos;
+    public bool knifeMode = false;
     public Unit(int _id)
     {
         myPath = new List<Node>();
