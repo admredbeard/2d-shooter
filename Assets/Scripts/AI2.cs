@@ -231,11 +231,11 @@ public class AI2 : MonoBehaviour
     {
         if(wep == Weapon.Pistol)
         {
-            return 30;
+            return 20;
         }
         else if(wep == Weapon.Shotgun)
         {
-            return 20;
+            return 15;
         }
         else if(wep == Weapon.Rifle)
         {
@@ -474,7 +474,7 @@ public class AI2 : MonoBehaviour
                 api.SwapWeapon(unitID, Weapon.Shotgun);
             }
         }
-        else if(rifleAmmo > 0 && DecisionRifle(distanceToThreat, pistolAmmo, shotgunAmmo))
+        else if(rifleAmmo > 0 && DecisionRifle(distanceToThreat, enemyInSight, pistolAmmo,  shotgunAmmo))
         {
             if (api.GetWeapon(unitID) != Weapon.Rifle)
             {
@@ -494,7 +494,7 @@ public class AI2 : MonoBehaviour
     private bool DecisionPistol(float distanceToThreat, bool enemyInSight, int shotgunAmmo, int rifleAmmo)
     {
         //medium quarter, might change this cus we prioritize pistol instead of rifle atm
-        if (distanceToThreat > 10 || distanceToThreat == -1)
+        if (rifleAmmo == 0 && (distanceToThreat > 10 || distanceToThreat == -1))
         {
             //change if we cant shoot
             if (!enemyInSight)
@@ -513,7 +513,7 @@ public class AI2 : MonoBehaviour
     private bool DecisionShotgun(float distanceToThreat, float magAmmo, bool enemyInSight, bool isInZone, int pistolAmmo, int rifleAmmo)
     {
         //Close quarter
-        if (distanceToThreat < 10 && distanceToThreat != -1)
+        if (distanceToThreat < 8 && distanceToThreat != -1)
         {
             //we can swap if we dont wanna shoot
             if (!enemyInSight)
@@ -538,12 +538,15 @@ public class AI2 : MonoBehaviour
         }
         return false;
     }
-    private bool DecisionRifle(float distanceToThreat, int pistolAmmo, int shotgunAmmo)
+    private bool DecisionRifle(float distanceToThreat, bool enemyInSight, int pistolAmmo, int shotgunAmmo)
     {
         //rifle for long range might be bad, pistol is bad
-        if (distanceToThreat != -1 && distanceToThreat > 20)
+        if (distanceToThreat == -1 || distanceToThreat > 10)
         {
-            return true;
+            if (!enemyInSight)
+            {
+                return true;
+            }
         }
         //rifle instead of pistol when no more ammo
         if (pistolAmmo == 0 && (distanceToThreat == -1 || distanceToThreat > 10))
@@ -606,16 +609,11 @@ public class AI2 : MonoBehaviour
         Vector2Int zoneGridPos = api.GetGridPosFromWorldPos(zonePos);
         int zoneGrids = (int)(api.GetZoneRadius() / 2.5f);
         List<Vector2Int> zonePositions = new List<Vector2Int>();
-        Debug.Log(zoneGridPos);
         for(int i = -zoneGrids; i < zoneGrids; i++)
         {
             for(int j = -zoneGrids; j < zoneGrids; j++)
             {
                 Vector2Int position = new Vector2Int(zoneGridPos.x + i, zoneGridPos.y + j);
-                if(position == zoneGridPos)
-                {
-                    Debug.Log("fklbskdfsbjfdskfd");
-                }
                 if (position.x > mapSize - 1 || position.x < 0 || position.y > mapSize - 1 || position.y < 0)
                 {
                     continue;
@@ -624,7 +622,6 @@ public class AI2 : MonoBehaviour
                 {
                     if (bestPoss.Count < 3)
                     {
-                        Debug.Log("hehehe");
                         bestPoss.Add(initialized_map[position.x, position.y]);
                     }
                     else
@@ -651,7 +648,6 @@ public class AI2 : MonoBehaviour
                 }
             }
         }
-        Debug.Log(bestPoss.Count);
         return bestPoss;
     }
 
