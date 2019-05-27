@@ -10,20 +10,30 @@ public class AI1 : MonoBehaviour
     int myTeamId; //This id is used for certain API calls and is unique for your team
 
     int globalTarget = 10;
+    Node[,] worldMap;
     bool[,] map;
     Vector2Int myGrid;
     Vector2 zonePos;
     int mapSize;
     Vector2Int targetPos;
-
+    List<Node> path;
+    List<Unit> units; //Unit class found at bottom of script, used to store goals and paths
+    int stuckCount = 20;
     void Start()
     {
+        path = new List<Node>();
         api = gameObject.GetComponent<APIScript>();
+        worldMap = CreateMap();
         myTeamId = api.teamId;
         myUnits = api.GetPlayers(myTeamId);
-        map = api.GetMap();
+        units = new List<Unit>();
         mapSize = api.GetMapSize();
+        map = api.GetMap();
         targetPos = api.GetGridPos(myUnits[0]);
+
+        foreach (int unitId in myUnits)
+            units.Add(new Unit(unitId));
+
     }
 
     float shotGunRange = 10f;
@@ -34,10 +44,15 @@ public class AI1 : MonoBehaviour
     {
         foreach (int unitId in myUnits)
         {
+            Vector2 middle = GetMapMiddle();
+            worldMap[GetXPos(middle.x), GetYPos(middle.y)].center = true;
+            Unit currentUnit = GetUnit(unitId);
+            if (currentUnit.myPath.Count == 0)
+                currentUnit.myPath = FindPath(unitId, middle);
 
             zonePos = api.GetZonePosition();
             myGrid = api.GetGridPos(unitId);
-            LetsMove(unitId, zonePos);
+            LetsMove(unitId, currentUnit);
             int target = GetBestVisualTarget(unitId);
 
             if (target != unitId)
@@ -96,25 +111,51 @@ public class AI1 : MonoBehaviour
             }
         }
     }
-    void LetsMove(int unitId, Vector2 pos)
+
+    Unit GetUnit(int unitId)
     {
-
-        //if(Vector3.Distance(api.GetWorldPosition(unitId), lastPos) < 0.1)
-        //ChangeAngle(unitId, zonePos);
-
-        if (Vector2.Distance(api.GetWorldPosition(unitId), api.GetWorldPosFromGridPos(targetPos.x, targetPos.y)) < 2)
+        foreach (Unit unit in units)
         {
-            targetPos = api.GetGridPosFromWorldPos(pos);
+            if (unit.myId == unitId)
+                return unit;
         }
 
-        float moveAngle = ChangeAngle(unitId, targetPos);
-        api.Move(unitId, moveAngle);
+        return units[0];
+    }
 
+    void LetsMove(int unitId, Unit unit)
+    {
+        if (unit.iteration < unit.myPath.Count)
+        {
+            stuckCount++;
+            Vector2 target = unit.myPath[unit.iteration].position;
+            Vector2 pos = api.GetWorldPosition(unitId);
+
+            if (Vector2.Distance(pos, target) < 2f)
+            {
+                unit.iteration++;
+                if(unit.iteration < unit.myPath.Count)
+                    target = unit.myPath[unit.iteration].position;
+            }
+            if (stuckCount > 100 && unit.myPath != null)
+            {
+                if (unit.iteration > 2 && (unit.lastPos - pos).magnitude < 2f)
+                {
+                    print("reverting");
+                    unit.iteration -= 2;
+                }
+                unit.lastPos = pos;
+                stuckCount = 0;
+            }
+            float moveAngle = ChangeAngle(unitId, api.GetGridPosFromWorldPos(target));
+            api.Move(unitId, moveAngle);
+        }
     }
 
 
     float ChangeAngle(int unitId, Vector2Int gridPos)
     {
+
         float angle = api.AngleBetweenUnitGridpos(unitId, gridPos);
         if (angle >= -45 && angle < 45)
         {
@@ -300,12 +341,13 @@ public class AI1 : MonoBehaviour
     List<Vector2Int> GetNeighbourGrids(Vector2Int currentPos, bool[,] map, int range)
     {
         List<Vector2Int> neighbours = new List<Vector2Int>();
+        int size = api.GetMapSize();
 
         for (int i = -range + 1; i < range; i++)
         {
             for (int j = -range + 1; j < 2; j++)
             {
-                if (currentPos.x + i >= 0 && currentPos.y + j >= 0)
+                if (currentPos.x + i >= 0 && currentPos.y + j >= 0 && size > currentPos.x + i && currentPos.y + j < size)
                 {
                     if (j != 0 && i != 0)
                     {
@@ -318,8 +360,284 @@ public class AI1 : MonoBehaviour
         return neighbours;
     }
 
+    List<Node> FindPath(int unitId, Vector2 _goal)
+    {
+
+        List<Node> path = new List<Node>();
+        Vector2 playerPos = api.GetWorldPosition(unitId);
+        Node goal = worldMap[GetXPos(_goal.x), GetYPos(_goal.y)];
+        Node start = worldMap[GetXPos(playerPos.x), GetYPos(playerPos.y)];
+        List<Node> open = new List<Node>();
+        List<Node> closed = new List<Node>();
+        open.Add(start);
+        int count = 0;
+
+        while (open.Count > 0 && count < 1500)
+        {
+
+            count++;
+            Node current = open[0];
+
+            for (int i = 1; i < open.Count; i++)
+            {
+                if (open[i].Cost < current.Cost || (open[i].Cost == current.Cost && open[i].hCost < current.hCost))
+                    current = open[i];
+            }
+
+            open.Remove(current);
+            closed.Add(current);
+
+            if (current.position == goal.position)
+            {
+                print("path found!");
+                return Path(start, goal);
+            }
+
+            foreach (Node neighbour in GetNeighbours(current))
+            {
+                if (!neighbour.traversable || closed.Contains(neighbour))
+                    continue;
+
+                float newCost = current.gCost + GetDistance(current, neighbour);
+                if (newCost < neighbour.gCost || !open.Contains(neighbour))
+                {
+                    current.child = neighbour;
+                    neighbour.parent = current;
+                    neighbour.gCost = current.gCost + newCost;
+                    neighbour.hCost = GetDistance(current, goal);
+
+                    if (!open.Contains(neighbour))
+                        open.Add(neighbour);
+
+                }
+            }
+        }
+        print("Could not find path after: " + count + " iterations");
+        return new List<Node>();
+    }
+
+    int GetXPos(float x)
+    {
+        return (int)(x / 2.5f);
+    }
+
+    int GetYPos(float y)
+    {
+        return (int)(y / 2.5f);
+    }
+    List<Node> Path(Node start, Node goal)
+    {
+        List<Node> newPath = new List<Node>();
+
+        Node current = goal;
+        int count = 0;
+        while (current.position != start.position && current != null && count < 100)
+        {
+            count++;
+            newPath.Add(current);
+            current = current.parent;
+
+            if (current == null)
+                break;
+        }
+        newPath.Reverse();
+        return newPath;
+    }
+    float GetDistance(Node nodeA, Node nodeB)
+    {
+        float x = Mathf.Abs(nodeA.position.x - nodeB.position.x);
+        float z = Mathf.Abs(nodeA.position.y - nodeB.position.y);
+        if (x > z)
+        {
+            return x + z;
+        }
+        else
+        {
+            return x + z;
+        }
+
+    }
+
+    List<Node> GetNeighbours(Node node)
+    {
+        List<Node> neighbours = new List<Node>();
+        bool[,] map = api.GetMap();
+        int size = api.GetMapSize();
+        /* 
+        for (int i = -1; i < 2; i++)
+        {
+            for (int j = -1; j < 2; j++)
+            {
+                if (Mathf.Abs(i) != Mathf.Abs(j))
+                {
+                    int x = node.xGrid + i;
+                    int y = node.yGrid + j;
+
+                    if (x >= 0 && y >= 0 && size > x && size > y)
+                    {
+                        neighbours.Add(worldMap[x, y]);
+                    }
+                }
+            }
+        }*/
+
+        int x = node.xGrid + 1;
+        int y = node.yGrid;
+
+        if (x >= 0 && y >= 0 && size > x && size > y)
+        {
+            neighbours.Add(worldMap[x, y]);
+        }
+
+        x = node.xGrid - 1;
+        if (x >= 0 && y >= 0 && size > x && size > y)
+        {
+            neighbours.Add(worldMap[x, y]);
+        }
+
+        x = node.xGrid;
+        y = node.yGrid + 1;
+
+        if (x >= 0 && y >= 0 && size > x && size > y)
+        {
+            neighbours.Add(worldMap[x, y]);
+        }
+
+        x = node.xGrid;
+        y = node.yGrid - 1;
+
+        if (x >= 0 && y >= 0 && size > x && size > y)
+        {
+            neighbours.Add(worldMap[x, y]);
+        }
+
+        return neighbours;
+    }
+
     Vector2 GetMapMiddle()
     {
-        return new Vector2(api.GetMapSize() * 2.5f / 2, api.GetMapSize() * 2.5f / 2);
+        bool[,] map = api.GetMap();
+        float x = api.GetMapSize() * 2.5f / 2;
+        float y = api.GetMapSize() * 2.5f / 2;
+        Vector2 pos = new Vector2(x, y);
+        if (map[GetXPos(x), GetYPos(y)])
+            return pos;
+        else
+        {
+            for (int i = -2; i < 3; i++)
+            {
+                for (int j = -2; j < 3; j++)
+                {
+                    if (map[GetXPos(x + (i * 2.5f)), GetYPos(y + (j * 2.5f))])
+                        return new Vector2(pos.x + i * 2.5f, pos.y + j * 2.5f);
+                }
+            }
+        }
+        return new Vector2(0f, 0f);
+    }
+
+
+    void OnDrawGizmos()
+    {
+        if (worldMap != null && units[0].myPath != null)
+        {
+            foreach (Node node in worldMap)
+            {
+                if (units[0].myPath.Contains(node))
+                {
+                    Gizmos.color = Color.yellow;
+                    Gizmos.DrawCube(node.position, new Vector3(1f, 1f, 1f));
+                }
+                if (node.center)
+                {
+                    Gizmos.color = Color.red;
+                    Gizmos.DrawCube(node.position, new Vector3(1f, 1f, 1f));
+                }
+                /*
+                if (node != null)
+                {
+                    if (node.traversable)
+                    {
+                        Gizmos.color = Color.yellow;
+                        Gizmos.DrawCube(node.position, new Vector3(1f, 1f, 1f));
+                    }
+                    else
+                    {
+                        Gizmos.color = Color.red;
+                        Gizmos.DrawCube(node.position, new Vector3(1f, 1f, 1f));
+                    }
+
+                }*/
+            }
+        }
+    }
+
+    Node[,] CreateMap()
+    {
+        int size = api.GetMapSize();
+        bool[,] traversableMap = api.GetMap();
+        Node[,] newMap = new Node[size, size];
+        float gridSize = 2.5f;
+        Vector2 pos = new Vector2(0f, 0f);
+
+        for (int i = 0; i < size; i++)
+        {
+            for (int j = 0; j < size; j++)
+            {
+                if (traversableMap[i, j])
+                {
+                    pos = new Vector2(i * gridSize, j * gridSize);
+                    newMap[i, j] = new Node(true, pos, i, j);
+                }
+                else
+                {
+                    pos = new Vector2(i * gridSize, j * gridSize);
+                    newMap[i, j] = new Node(false, pos, i, j);
+                }
+            }
+        }
+        return newMap;
+    }
+}
+
+class Node
+{
+    public bool traversable = false;
+    public Vector2 position;
+    public float gCost = 0;
+    public float hCost = 0;
+    public bool center = false;
+    public int xGrid;
+    public int yGrid;
+    public Node parent;
+    public Node child;
+    public Node(bool _traversable, Vector2 _position, int x, int y)
+    {
+        traversable = _traversable;
+        position = _position;
+        xGrid = x;
+        yGrid = y;
+    }
+
+    public float Cost
+    {
+        get { return gCost + hCost; }
+    }
+}
+
+class Unit
+{
+    public List<Node> myPath;
+    public Vector2 goal;
+    public int myId;
+    public int iteration;
+    public Vector2 lastPos;
+    public Unit(int _id)
+    {
+        myPath = new List<Node>();
+        lastPos = Vector2.zero;
+        goal = Vector2.zero;
+        myId = _id;
+        iteration = 0;
     }
 }
