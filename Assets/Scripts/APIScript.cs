@@ -73,14 +73,14 @@ public class APIScript : MonoBehaviour
         return mb.AngleBetweenUnits(unitId, targetId);
     }
 
-    public float AngleBetweenUnitWorldpos(int unitId, int targetId)
+    public float AngleBetweenUnitWorldpos(int unitId, Vector2 targetPos)
     {
-        return mb.AngleBetweenUnitWorldpos(unitId, targetId);
+        return mb.AngleBetweenUnitWorldpos(unitId, targetPos);
     }
 
-    public float AngleBetweenUnitGridpos(int unitId, int targetId)
+    public float AngleBetweenUnitGridpos(int unitId, Vector2Int targetPos)
     {
-        return mb.AngleBetweenUnitGridpos(unitId, targetId);
+        return mb.AngleBetweenUnitGridpos(unitId, targetPos);
     }
 
     public List<int> SenseNearby(int unitId)
@@ -331,6 +331,16 @@ public class APIScript : MonoBehaviour
             return mb.DistanceToWorldPos(unitId, worldPosition);
         else
             throw new System.UnauthorizedAccessException("Error: Unit must on your team");
+    }
+
+    public Vector2 GetZonePosition()
+    {
+        return mb.ZoneCenter();
+    }
+
+    public float GetZoneRadius()
+    {
+        return mb.ZoneRadius();
     }
 
     public bool IsUnitInZone(int unitId)

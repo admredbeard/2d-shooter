@@ -126,7 +126,7 @@ public class MapBehavior : MonoBehaviour
 
     public Vector2 GetWorldPosFromGridPos(int x, int y)
     {
-        return new Vector2(Mathf.Round(x * 2.5f), Mathf.Round(y * 2.5f));
+        return new Vector2((float) x * 2.5f,(float) y * 2.5f);
     }
 
     public Vector2 GetWorldPosFromGridPos(Vector2Int gridIndex)
@@ -241,20 +241,22 @@ public class MapBehavior : MonoBehaviour
 
     public float AngleBetweenUnits(int unitId, int targetId)
     {
-        // NOT IMPLEMENTED YET
-        return 0f;
+        Vector2 begin = GetWorldPos(unitId);
+        Vector2 end = GetWorldPos(targetId);
+        return Vector2.SignedAngle(Vector2.right, end - begin);
     }
 
-    public float AngleBetweenUnitWorldpos(int unitId, int targetId)
+    public float AngleBetweenUnitWorldpos(int unitId, Vector2 targetPos)
     {
-        // NOT IMPLEMENTED YET
-        return 0f;
+        Vector2 begin = GetWorldPos(unitId);
+        return Vector2.SignedAngle(Vector2.right, targetPos - begin);
     }
 
-    public float AngleBetweenUnitGridpos(int unitId, int targetId)
+    public float AngleBetweenUnitGridpos(int unitId, Vector2Int targetPos)
     {
-        // NOT IMPLEMENTED YET
-        return 0f;
+        Vector2 begin = GetWorldPos(unitId);
+        Vector2 end = GetWorldPosFromGridPos(targetPos);
+        return Vector2.SignedAngle(Vector2.right, end - begin);
     }
 
 }
