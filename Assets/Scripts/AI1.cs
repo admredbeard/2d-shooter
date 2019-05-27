@@ -46,8 +46,14 @@ public class AI1 : MonoBehaviour
         foreach (int unitId in myUnits)
         {
             Unit currentUnit = GetUnit(unitId);
-
-            zonePos = api.GetZonePosition();
+            if (currentUnit.myPath.Count == 0 && api.GetZonePosition() == Vector2.zero)
+            {
+                Vector2 middle = GetMapMiddle();
+                worldMap[GetXPos(middle.x), GetYPos(middle.y)].center = true;
+                zonePos = api.GetZonePosition();
+                currentUnit.goal = middle;
+                GetNewPath(currentUnit, middle);
+            }
             myGrid = api.GetGridPos(unitId);
 
             int target = GetBestVisualTarget(unitId);
@@ -104,12 +110,6 @@ public class AI1 : MonoBehaviour
                         currentUnit.goal = zonePosition;
                         GetNewPath(currentUnit, zonePosition);
                     }
-                }
-                else if (currentUnit.goal != middle)
-                {
-                    //If there is no zone at all and if we are not going towards the middle, go towards the middle
-                    currentUnit.goal = middle;
-                    GetNewPath(currentUnit, middle);
                 }
             }
             //Last thing we want to do is check if we have a path, if we do lets traverse it
