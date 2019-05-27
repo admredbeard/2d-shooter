@@ -34,6 +34,7 @@ public class AI1 : MonoBehaviour
         foreach (int unitId in myUnits)
             units.Add(new Unit(unitId));
 
+        StartCoroutine(WeaponCheck());
     }
 
     float shotGunRange = 10f;
@@ -44,8 +45,6 @@ public class AI1 : MonoBehaviour
     {
         foreach (int unitId in myUnits)
         {
-            Vector2 middle = GetMapMiddle();
-            worldMap[GetXPos(middle.x), GetYPos(middle.y)].center = true;
             Unit currentUnit = GetUnit(unitId);
 
             zonePos = api.GetZonePosition();
@@ -277,8 +276,8 @@ public class AI1 : MonoBehaviour
     void ReadyAimFire(int unitId, float range)
     {
         Weapon currentWeapon = api.GetWeapon(unitId);
-
-        if (CanHit(range, currentWeapon))
+        int currAmmo = GetTotalAmmo(unitId, currentWeapon);
+        if (CanHit(range, currentWeapon) && currAmmo > 0)
         {
             if (api.CanFire(unitId))
                 api.Attack(unitId);
@@ -286,7 +285,10 @@ public class AI1 : MonoBehaviour
                 api.ReloadWeapon(unitId);
         }
         else
+        {
+            print(currentWeapon);
             SwapWeapon(unitId, range);
+        }
     }
 
     bool CanHit(float range, Weapon currentWeapon)
@@ -305,12 +307,23 @@ public class AI1 : MonoBehaviour
 
     void SwapWeapon(int unitId, float range)
     {
-        if (range < shotGunRange && GetTotalAmmo(unitId, Weapon.Shotgun) > 0)
+        int shotgunAmmo = GetTotalAmmo(unitId, Weapon.Shotgun);
+        int pistolAmmo = GetTotalAmmo(unitId, Weapon.Pistol);
+        int rifleAmmo = GetTotalAmmo(unitId, Weapon.Rifle);
+        print("Shotgun: " + shotgunAmmo);
+        print("Pistol: " + pistolAmmo);
+        print("Rifle: " + rifleAmmo);
+
+        if (range < shotGunRange && shotgunAmmo > 0)
             api.SwapWeapon(unitId, Weapon.Shotgun);
-        else if (range < pistolRange && GetTotalAmmo(unitId, Weapon.Pistol) > 0)
+        else if (range < pistolRange && pistolAmmo > 0)
             api.SwapWeapon(unitId, Weapon.Pistol);
-        else if (GetTotalAmmo(unitId, Weapon.Rifle) > 0)
+        else if (rifleAmmo > 0)
             api.SwapWeapon(unitId, Weapon.Rifle);
+        else if (pistolAmmo > 0)
+            api.SwapWeapon(unitId, Weapon.Pistol);
+        else if (shotgunAmmo > 0)
+            api.SwapWeapon(unitId, Weapon.Pistol);
         else
             api.SwapWeapon(unitId, Weapon.Knife);
     }
@@ -319,6 +332,7 @@ public class AI1 : MonoBehaviour
     {
         return api.GetReserveAmmunition(unitId, weapon) + api.GetMagazineAmmunition(unitId, weapon);
     }
+
     int GetBestVisualTarget(int unitId)
     {
         List<int> enemies = api.SenseNearbyByTeam(unitId, -myTeamId);
@@ -343,12 +357,8 @@ public class AI1 : MonoBehaviour
                     {
                         bestTargetInVision = true;
                         bestTargetId = enemy;
+                        closestRange = range;
                     }
-                }
-                else if (range < closestRange)
-                {
-                    //bestTargetId = enemy;
-                    closestRange = range;
                 }
             }
         }
@@ -626,6 +636,48 @@ public class AI1 : MonoBehaviour
                     Gizmos.DrawCube(node.position, new Vector3(1f, 1f, 1f));
                 }
             }
+        }
+    }
+
+    IEnumerator WeaponCheck()
+    {
+        yield return new WaitForSeconds(2.5f);
+        while (true)
+        {
+
+            foreach (int unitId in myUnits)
+            {
+                Weapon currentWeapon = api.GetWeapon(unitId);
+                float swapTimer = api.WeaponSwapCooldown(unitId);
+                float reloadTimer = api.ReloadCooldown(unitId);
+
+                if (currentWeapon == Weapon.Knife && swapTimer < 0f && reloadTimer < 0f)
+                {
+                    if (GetTotalAmmo(unitId, Weapon.Pistol) > 0)
+                        api.SwapWeapon(unitId, Weapon.Pistol);
+                }
+                else if (currentWeapon != Weapon.Knife && GetTotalAmmo(unitId, currentWeapon) == 0 && swapTimer < 0f && reloadTimer < 0f)
+                {
+                    int pistolAmmo = GetTotalAmmo(unitId, Weapon.Pistol);
+                    int rifleAmmo = GetTotalAmmo(unitId, Weapon.Rifle);
+                    int shotgunAmmo = GetTotalAmmo(unitId, Weapon.Shotgun);
+                    if (pistolAmmo > 0)
+                        api.SwapWeapon(unitId, Weapon.Pistol);
+                    else if (rifleAmmo > 0)
+                        api.SwapWeapon(unitId, Weapon.Rifle);
+                    else if (shotgunAmmo > 0)
+                        api.SwapWeapon(unitId, Weapon.Shotgun);
+                    else
+                        api.SwapWeapon(unitId, Weapon.Knife);
+                }
+                else if (currentWeapon == Weapon.Pistol && api.GetMagazineAmmunition(unitId, currentWeapon) < 2 && api.FireCooldown(unitId) < 0f && GetTotalAmmo(unitId, Weapon.Pistol) > 4)
+                {
+                    api.ReloadWeapon(unitId);
+                }
+
+            }
+
+            yield return new WaitForSeconds(2f);
         }
     }
 
