@@ -148,7 +148,7 @@ Rigidbody2D:
   m_GameObject: {fileID: 4702860374895825186}
   m_BodyType: 1
   m_Simulated: 1
-  m_UseFullKinematicContacts: 0
+  m_UseFullKinematicContacts: 1
   m_UseAutoMass: 0
   m_Mass: 2
   m_LinearDrag: 2

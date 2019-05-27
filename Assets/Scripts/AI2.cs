@@ -29,24 +29,147 @@ public class AI2 : MonoBehaviour
         myUnits = api.GetPlayers(myTeamId);
         mapSize = (int)Mathf.Sqrt(map.Length);
         Init();
+        StartCoroutine("DeathHandler");
     }
-
+    Node targetPlayer1;
+    Node targetPlayer2;
+    Node targetPlayer3;
     Vector2 oldZone;
     bool once = true;
+
+    int leader;
+   
+    private void CalculcatePaths(Vector2 position, bool zone)
+    {
+        leader = ClosestToGoal(position);
+        Vector2Int currentposition = api.GetGridPos(leader);
+        Vector2Int zoneGridpos = api.GetGridPosFromWorldPos(position);
+        Node target;
+        Node rightTarget;
+        Node leftTarget;
+        List<Node> leaderPath;
+        if (zone)
+        {
+            List<Node> target2 = GetBestPositionsInZone();
+            target = target2[0];
+            leaderPath = FindPath(initialized_map[currentposition.x, currentposition.y], target);
+            rightTarget = target2[1];
+            leftTarget = target2[2];
+        }
+        else
+        {
+            target = GetBestPositionsAtPos(initialized_map[zoneGridpos.x, zoneGridpos.y], 3);
+            leaderPath = FindPath(initialized_map[currentposition.x, currentposition.y], target);
+
+
+            Vector2 direction = position - api.GetWorldPosition(leader);
+            if (leaderPath.Count > 0)
+            {
+                direction = api.GetWorldPosition(leader) - leaderPath[leaderPath.Count - 1].position;
+            }
+            Vector2 offsetDirection = new Vector2(direction.y, -direction.x).normalized * 7.5f;
+            Vector2Int rightPosition = api.GetGridPosFromWorldPos(position + offsetDirection);
+            Vector2Int leftPosition = api.GetGridPosFromWorldPos(position - offsetDirection);
+            rightTarget = GetBestPositionsAtPos(initialized_map[rightPosition.x, rightPosition.y], 3);
+            leftTarget = GetBestPositionsAtPos(initialized_map[leftPosition.x, leftPosition.y], 3);
+        }
+        
+       
+
+
+        if (leader == idPlayer1)
+        {
+            unit1Path = leaderPath;
+            targetPlayer1 = target;
+        }
+        else
+        {
+            targetPlayer1 = rightTarget;
+            unit1Path = FindPath(initialized_map[api.GetGridPos(idPlayer1).x, api.GetGridPos(idPlayer1).y], rightTarget);
+        }
+        if (leader == idPlayer2)
+        {
+            targetPlayer2 = target;
+            unit2Path = leaderPath;
+        }
+        else
+        {
+            Node target2 = leftTarget;
+            if (leader == idPlayer1)
+            {
+               
+                target2 = rightTarget;
+            }
+            targetPlayer2 = target2;
+            unit2Path = FindPath(initialized_map[api.GetGridPos(idPlayer2).x, api.GetGridPos(idPlayer2).y], target2);
+        }
+        if (leader == idPlayer3)
+        {
+            targetPlayer3 = target;
+            unit3Path = leaderPath;
+        }
+        else
+        {
+            targetPlayer3 = leftTarget;
+            unit3Path = FindPath(initialized_map[api.GetGridPos(idPlayer3).x, api.GetGridPos(idPlayer3).y], leftTarget);
+        }
+    }
+
+    Vector2 oldPosplayer1;
+    Vector2 oldPosplayer2;
+    Vector2 oldPosplayer3;
+
+    IEnumerator DeathHandler()
+    {
+        yield return new WaitForSeconds(5);
+        while (true)
+        {
+            foreach(int unit in myUnits)
+            {
+                
+                Vector2Int newPosition = api.GetGridPos(unit);
+                if (unit == idPlayer1 && unit1Path.Count > 0)
+                {
+                    if (Vector2.Distance(api.GetWorldPosition(unit), unit1Path[0].position) > 5)
+                    {
+                        unit1Path = FindPath(initialized_map[newPosition.x, newPosition.y], targetPlayer1);
+                    }
+                }
+                else if (unit == idPlayer1 && unit2Path.Count > 0)
+                {
+                    if (Vector2.Distance(api.GetWorldPosition(unit), unit2Path[0].position) > 5)
+                    {
+                        unit2Path = FindPath(initialized_map[newPosition.x, newPosition.y], targetPlayer2);
+                    }
+                }
+                else if (unit == idPlayer1 && unit3Path.Count > 0)
+                {
+                    if (Vector2.Distance(api.GetWorldPosition(unit), unit3Path[0].position) > 5)
+                    {
+                        unit3Path = FindPath(initialized_map[newPosition.x, newPosition.y], targetPlayer3);
+                    }
+                }
+            }
+            yield return new WaitForSeconds(1f);
+        }
+    }
+
     // Update is called once per frame
     void FixedUpdate()
     {
         if(api.GetZonePosition() != oldZone)
         {
             oldZone = api.GetZonePosition();
+            CalculcatePaths(oldZone, true);
         }
-        
+
         List<int> enemies = api.SenseNearbyByTeam(idPlayer1, -myTeamId);
         enemies.AddRange(api.SenseNearbyByTeam(idPlayer2, -myTeamId));
         enemies.AddRange(api.SenseNearbyByTeam(idPlayer3, -myTeamId));
 
         foreach (int unit in myUnits)
         {
+            
             //using try for unauthorizedaccessexception
             try
             {
@@ -63,19 +186,22 @@ public class AI2 : MonoBehaviour
                     }
                 }
                 //Do some local goal;
+                
                 if (unit == idPlayer1)
                 {
+                    
                     unit1Path = FollowPath(idPlayer1, unit1Path);
                 }
                 else if (unit == idPlayer2)
                 {
+                    
                     unit2Path = FollowPath(idPlayer2, unit2Path);
                 }
                 else if (unit == idPlayer3)
                 {
+                    
                     unit3Path = FollowPath(idPlayer3, unit3Path);
                 }
-               
             }
             catch(System.UnauthorizedAccessException e)
             {
@@ -139,6 +265,8 @@ public class AI2 : MonoBehaviour
         }
     }
 
+
+    Node startGoal;
     List<Node> unit1Path;
     List<Node> unit2Path;
     List<Node> unit3Path;
@@ -154,6 +282,7 @@ public class AI2 : MonoBehaviour
         idPlayer1 = myUnits[0];
         idPlayer2 = myUnits[1];
         idPlayer3 = myUnits[2];
+        
 
         for (int i = 0; i < mapSize; i++)
         {
@@ -165,22 +294,16 @@ public class AI2 : MonoBehaviour
                 initialized_map[i, j].visionScore = CalculateNodeValue(new Vector2(i, j));
             }
         }
-        Debug.Log(mapSize);
-        Debug.Log(initialized_map[0, 0].visionScore);
+        
 
         averageScore = totalScore / mapSize * mapSize;
 
         //Just some tests of A*:::
         Vector2Int aUnitPos = api.GetGridPos(myUnits[0]);
-        Node testnode1 = initialized_map[aUnitPos.x, aUnitPos.y];
-        Node testnode2 = initialized_map[10, 10];
-        Node testnode3 = initialized_map[0, 10];
-        Node testnode4 = initialized_map[10, 0];
+        Node startpos = initialized_map[aUnitPos.x, aUnitPos.y];
+        startGoal = initialized_map[(int)Mathf.Round(mapSize / 2), (int)Mathf.Round(mapSize / 2)];
 
-
-        unit1Path = FindPath(testnode1, testnode2);
-        unit2Path = FindPath(testnode1, testnode3);
-        unit3Path = FindPath(testnode1, testnode4);
+        CalculcatePaths(new Vector2(mapSize*2.5f/2, mapSize*2.5f/2), false);
 
         if (debugPath)
         {
@@ -205,7 +328,7 @@ public class AI2 : MonoBehaviour
                     //line equation---- y-y / x-x  om x1 != x2
                     Vector2 to = new Vector2Int(0, i);
                     Vector2 line = to - from;
-                    int paramLimit = (int)Mathf.Floor(line.magnitude);
+                    int paramLimit = Mathf.Clamp((int)line.magnitude, 1, 10); 
                     line.Normalize();
                     for (int k = 1; k < paramLimit; k++)
                     {
@@ -229,7 +352,7 @@ public class AI2 : MonoBehaviour
                     //do with x == 40
                     Vector2 to = new Vector2Int(mapSize - 1, i);
                     Vector2 line = to - from;
-                    int paramLimit = (int)Mathf.Floor(line.magnitude);
+                    int paramLimit = Mathf.Clamp((int)line.magnitude, 1, 10);
                     line.Normalize();
                     for (int k = 1; k < paramLimit; k++)
                     {
@@ -253,7 +376,7 @@ public class AI2 : MonoBehaviour
                     //do with y == 0
                     Vector2 to = new Vector2Int(i, 0);
                     Vector2 line = to - from;
-                    int paramLimit = (int)Mathf.Floor(line.magnitude);
+                    int paramLimit = Mathf.Clamp((int)line.magnitude, 1, 10);
                     line.Normalize();
                     if(i == 0)
                     {
@@ -285,7 +408,7 @@ public class AI2 : MonoBehaviour
                     //do with y == 40
                     Vector2 to = new Vector2Int(i, mapSize-1);
                     Vector2 line = to - from;
-                    int paramLimit = (int)Mathf.Floor(line.magnitude);
+                    int paramLimit = Mathf.Clamp((int)line.magnitude, 1, 10);
                     line.Normalize();
                     if(i == 0)
                     {
@@ -435,6 +558,103 @@ public class AI2 : MonoBehaviour
         return false;
     }
 
+    public int ClosestToGoal(Vector2 goal)
+    {
+        float distance;
+        float minDist = 100000f;
+        int closest = -1;
+        foreach (int id in myUnits)
+        {
+            distance = Vector2.Distance(api.GetWorldPosition(id), goal);
+            if (distance < minDist)
+            {
+                minDist = distance;
+                closest = id;
+            }
+        }
+        return closest;
+
+    }
+
+    private Node GetBestPositionsAtPos(Node position, int radius)
+    {
+        Node bestpos = position;
+        float lowestScore = position.visionScore;
+        for(int i = -radius; i < radius; i++)
+        {
+            for(int j = -radius; j < radius; j++)
+            {
+                Vector2Int testpos = new Vector2Int(position.x_grid + i, position.y_grid + j);
+                if(testpos.x > mapSize-1 || testpos.x < 0 || testpos.y > mapSize-1 || testpos.y < 0)
+                {
+                    continue;
+                }
+                if(initialized_map[testpos.x, testpos.y].visionScore < lowestScore)
+                {
+                    bestpos = initialized_map[testpos.x, testpos.y];
+                    lowestScore = initialized_map[testpos.x, testpos.y].visionScore;
+                }
+            }
+        }
+        return bestpos;
+    }
+
+    private List<Node> GetBestPositionsInZone()
+    {
+        List<Node> bestPoss = new List<Node>();
+        Vector2 zonePos = api.GetZonePosition();
+        Vector2Int zoneGridPos = api.GetGridPosFromWorldPos(zonePos);
+        int zoneGrids = (int)(api.GetZoneRadius() / 2.5f);
+        List<Vector2Int> zonePositions = new List<Vector2Int>();
+        Debug.Log(zoneGridPos);
+        for(int i = -zoneGrids; i < zoneGrids; i++)
+        {
+            for(int j = -zoneGrids; j < zoneGrids; j++)
+            {
+                Vector2Int position = new Vector2Int(zoneGridPos.x + i, zoneGridPos.y + j);
+                if(position == zoneGridPos)
+                {
+                    Debug.Log("fklbskdfsbjfdskfd");
+                }
+                if (position.x > mapSize - 1 || position.x < 0 || position.y > mapSize - 1 || position.y < 0)
+                {
+                    continue;
+                }
+                if (api.IsWorldPosInZone(api.GetWorldPosFromGridPos(position.x, position.y)))
+                {
+                    if (bestPoss.Count < 3)
+                    {
+                        Debug.Log("hehehe");
+                        bestPoss.Add(initialized_map[position.x, position.y]);
+                    }
+                    else
+                    {
+                        float highest = 0;
+                        foreach(Node nod in bestPoss)
+                        {
+                            if(nod.visionScore > highest)
+                            {
+                                highest = nod.visionScore;
+                            }
+                        }
+                        
+                        foreach(Node nod in bestPoss)
+                        {
+                            if(highest == nod.visionScore)
+                            {
+                                bestPoss.Remove(nod);
+                                bestPoss.Add(initialized_map[position.x, position.y]);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Debug.Log(bestPoss.Count);
+        return bestPoss;
+    }
+
     public int GetBestEnemy(int unitID, List<int> enemies)
     {
         int bestEnemy = 10000;
@@ -570,7 +790,7 @@ public class AI2 : MonoBehaviour
                 if (newCost < neighbour.gScore || !open.Contains(neighbour))
                 {
                     neighbour.gScore = newCost;
-                    neighbour.hScore = Vector2.Distance(goal.position, neighbour.position)*20;// Distance (goal, neighbour);
+                    neighbour.hScore = Vector2.Distance(goal.position, neighbour.position)*30;// Distance (goal, neighbour);
                     neighbour.cameFrom = current;
 
                     if (!open.Contains(neighbour))
