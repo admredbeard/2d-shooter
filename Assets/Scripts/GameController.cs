@@ -138,6 +138,7 @@ public class GameController : MonoBehaviour
     // Spawning teamSize units for each team and assigning unique UnitIDs aswell as Team with values -1 or 1.
     private void SpawnTeams()
     {
+        int spawnCounter = 0;
         for (int i = 0; i < 2 * teamSize; i++)
         {
             GameObject temp;
@@ -154,12 +155,35 @@ public class GameController : MonoBehaviour
             if (i % 2 == 0)
             {
                 tempBehaviour.SetTeam(-1);
-                temp.transform.position = mb.GetWorldPosFromGridPos(traverability.GetLength(0) - 1, traverability.GetLength(0) - 1);
+                if (spawnCounter % 3 == 0)
+                {
+                    temp.transform.position = mb.GetWorldPosFromGridPos(traverability.GetLength(0) - 1, traverability.GetLength(0) - 1);
+                }
+                else if (spawnCounter % 3 == 1)
+                {
+                    temp.transform.position = mb.GetWorldPosFromGridPos(traverability.GetLength(0) - 2, traverability.GetLength(0) - 1);
+                }
+                else {
+                    temp.transform.position = mb.GetWorldPosFromGridPos(traverability.GetLength(0) - 1, traverability.GetLength(0) - 2);
+                }
+                spawnCounter++;
             }
             else
             {
                 tempBehaviour.SetTeam(1);
-                temp.transform.position = mb.GetWorldPosFromGridPos(0, 0);
+                if (spawnCounter % 3 == 0)
+                {
+                    temp.transform.position = mb.GetWorldPosFromGridPos(0, 0);
+                }
+                else if (spawnCounter % 3 == 1)
+                {
+                    temp.transform.position = mb.GetWorldPosFromGridPos(1, 0);
+                }
+                else
+                {
+                    temp.transform.position = mb.GetWorldPosFromGridPos(0, 1);
+                }
+                spawnCounter++;
             }
         }
     }
