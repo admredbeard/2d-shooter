@@ -192,7 +192,7 @@ public class MapBehavior : MonoBehaviour
 
     public bool GridPositionInSight(int unitId, Vector2Int gridPosition)
     {
-        return FreeLineOfSight2D(unitId, GetWorldPosFromGridPos(gridPosition));
+        return FreeLineOfSight2D(unitId, GetWorldPosFromGridPos(gridPosition.x,gridPosition.y));
     }
 
     public bool IsUnitInZone(int unitId)
@@ -224,14 +224,19 @@ public class MapBehavior : MonoBehaviour
     {
         Vector2 unitPos = new Vector2(gc.GetPlayers()[unitID].transform.position.x, gc.GetPlayers()[unitID].transform.position.y);
         RaycastHit2D[] lineOfSightObjects = Physics2D.RaycastAll(unitPos, targetPos - unitPos, Vector2.Distance(unitPos, targetPos));
-        
+
+        if (lineOfSightObjects.Length < 3)
+        {
+            return true;
+        }
+
         for (int i = 0; i < lineOfSightObjects.Length; i++)
         {
             if (lineOfSightObjects[i].transform.name == gc.GetPlayers()[unitID].transform.name)
             {
                 continue;
             }
-            else 
+            else
             {
                 return false;
             }
