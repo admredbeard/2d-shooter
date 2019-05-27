@@ -177,6 +177,10 @@ public class PlayerBehaviour : MonoBehaviour
 
     public IEnumerator ChangeWeapon(Weapon newWeapon)
     {
+        if (anim == null)
+        {
+            anim = GetComponentInChildren<Animator>();
+        }
         if (!reloading && !weaponSwap && !fired)
         {
             currentWeapon = newWeapon;
@@ -197,6 +201,10 @@ public class PlayerBehaviour : MonoBehaviour
 
     public IEnumerator ReloadWeapon()
     {
+        if (anim == null)
+        {
+            anim = GetComponentInChildren<Animator>();
+        }
         if (currentWeapon != Weapon.Knife)
         {
             anim.SetTrigger("reload");
