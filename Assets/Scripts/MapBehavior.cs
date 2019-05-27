@@ -126,7 +126,7 @@ public class MapBehavior : MonoBehaviour
 
     public Vector2 GetWorldPosFromGridPos(int x, int y)
     {
-        return new Vector2(Mathf.Round(x * 2.5f), Mathf.Round(y * 2.5f));
+        return new Vector2((float) x * 2.5f,(float) y * 2.5f);
     }
 
     public Vector2 GetWorldPosFromGridPos(Vector2Int gridIndex)
