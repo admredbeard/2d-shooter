@@ -281,7 +281,7 @@ public class AI1 : MonoBehaviour
         {
             if (api.CanFire(unitId))
                 api.Attack(unitId);
-            else if (api.GetMagazineAmmunition(unitId, currentWeapon) == 0 && api.GetReserveAmmunition(unitId, currentWeapon) > 0)
+            else if (api.GetMagazineAmmunition(unitId, currentWeapon) == 0 && api.GetReserveAmmunition(unitId, currentWeapon) > 0 && api.ReloadCooldown(unitId) < 0f)
                 api.ReloadWeapon(unitId);
         }
         else
@@ -524,7 +524,7 @@ public class AI1 : MonoBehaviour
                 {
                     int x = node.xGrid + i;
                     int y = node.yGrid + j;
-                    if (x + 1 > 0 && y + 1 > 0 && y + 1 < size && x + 1 < size)
+                    if (x > 0 && y > 0 && y + 1 < size && x + 1 < size)
                     {
                         if (worldMap[x + 1, y].traversable && worldMap[x, y + 1].traversable)
                             neighbours.Add(worldMap[x, y]);
@@ -534,7 +534,7 @@ public class AI1 : MonoBehaviour
                 {
                     int x = node.xGrid + i;
                     int y = node.yGrid + j;
-                    if (x + 1 > 0 && y - 1 > 0 && y - 1 < size && x + 1 < size)
+                    if (x > 0 && y - 1 > 0 && y < size && x + 1 < size)
                     {
                         if (worldMap[x + 1, y].traversable && worldMap[x, y - 1].traversable)
                             neighbours.Add(worldMap[x, y]);
@@ -544,7 +544,7 @@ public class AI1 : MonoBehaviour
                 {
                     int x = node.xGrid + i;
                     int y = node.yGrid + j;
-                    if (x - 1 > 0 && y + 1 > 0 && y + 1 < size && x - 1 < size)
+                    if (x - 1 > 0 && y > 0 && y + 1 < size && x < size)
                     {
                         if (worldMap[x - 1, y].traversable && worldMap[x, y + 1].traversable)
                             neighbours.Add(worldMap[x, y]);
@@ -554,7 +554,7 @@ public class AI1 : MonoBehaviour
                 {
                     int x = node.xGrid + i;
                     int y = node.yGrid + j;
-                    if (x - 1 > 0 && y - 1 > 0 && y - 1 < size && x - 1 < size)
+                    if (x - 1 > 0 && y - 1 > 0 && y < size && x < size)
                     {
                         if (worldMap[x - 1, y].traversable && worldMap[x, y - 1].traversable)
                             neighbours.Add(worldMap[x, y]);
