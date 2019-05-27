@@ -35,7 +35,6 @@ public class BulletInformation : MonoBehaviour
             if (target.tag.Equals("Player") && player != null && target != attackerObject)
             {
                 player.TakeDamage(damage);
-                print("Damage");
             }
             hit = true;
         }

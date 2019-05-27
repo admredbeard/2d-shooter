@@ -131,7 +131,7 @@ public class MapBehavior : MonoBehaviour
 
     public Vector2 GetWorldPosFromGridPos(Vector2Int gridIndex)
     {
-        return new Vector2(Mathf.Round(gridIndex.x * 2.5f), Mathf.Round(gridIndex.y * 2.5f));
+        return new Vector2((float)gridIndex.x * 2.5f, (float)gridIndex.y * 2.5f);
     }
 
     public bool IsGridPosTraversable(int x, int y)
