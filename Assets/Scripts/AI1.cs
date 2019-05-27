@@ -50,7 +50,7 @@ public class AI1 : MonoBehaviour
             {
                 Vector2 middle = GetMapMiddle();
                 worldMap[GetXPos(middle.x), GetYPos(middle.y)].center = true;
-                zonePos = api.GetZonePosition();
+                zonePos = GetZone();
                 currentUnit.goal = middle;
                 GetNewPath(currentUnit, middle);
             }
@@ -596,6 +596,27 @@ public class AI1 : MonoBehaviour
         return new Vector2(0f, 0f);
     }
 
+    Vector2 GetZone()
+    {
+        bool[,] map = api.GetMap();
+        float x = api.GetZonePosition().x;
+        float y = api.GetZonePosition().y;
+        Vector2 pos = new Vector2(x, y);
+        if (map[GetXPos(x), GetYPos(y)])
+            return pos;
+        else
+        {
+            for (int i = -2; i < 3; i++)
+            {
+                for (int j = -2; j < 3; j++)
+                {
+                    if (map[GetXPos(x + (i * 2.5f)), GetYPos(y + (j * 2.5f))])
+                        return new Vector2(pos.x + i * 2.5f, pos.y + j * 2.5f);
+                }
+            }
+        }
+        return new Vector2(0f, 0f);
+    }
 
     void OnDrawGizmos()
     {
