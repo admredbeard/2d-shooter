@@ -534,7 +534,7 @@ public class AI1 : MonoBehaviour
                 {
                     int x = node.xGrid + i;
                     int y = node.yGrid + j;
-                    if (x + 1 > 0 && y > 0 && y < size && x + 1 < size)
+                    if (x > 0 && y - 1 > 0 && y < size && x + 1 < size)
                     {
                         if (worldMap[x + 1, y].traversable && worldMap[x, y - 1].traversable)
                             neighbours.Add(worldMap[x, y]);
