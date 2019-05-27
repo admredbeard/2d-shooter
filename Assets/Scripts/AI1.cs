@@ -47,12 +47,9 @@ public class AI1 : MonoBehaviour
             Vector2 middle = GetMapMiddle();
             worldMap[GetXPos(middle.x), GetYPos(middle.y)].center = true;
             Unit currentUnit = GetUnit(unitId);
-            if (currentUnit.myPath.Count == 0)
-                currentUnit.myPath = FindPath(unitId, middle);
 
             zonePos = api.GetZonePosition();
             myGrid = api.GetGridPos(unitId);
-            LetsMove(unitId, currentUnit);
 
             int target = GetBestVisualTarget(unitId);
             if (target != unitId)
@@ -81,33 +78,45 @@ public class AI1 : MonoBehaviour
             else
             {
                 List<int> nearby = api.SenseNearbyByTeam(unitId, -myTeamId);
+                Vector2 myPosition = api.GetWorldPosition(unitId);
+                Vector2 zonePosition = api.GetZonePosition();
                 if (nearby.Count > 0)
                 {
-                    Vector2 myPosition = api.GetWorldPosition(unitId);
-                    Vector2 zonePosition = api.GetZonePosition();
-                    if (zonePosition != null && (myPosition - zonePosition).magnitude < 15f)
+                    if (zonePosition != Vector2.zero && (myPosition - zonePosition).magnitude < 15f)
                     {
                         //We are in zone, enemy is probabyly too, do we chill?
                     }
-                    else
+                    else if (zonePosition != Vector2.zero)
                     {
+                        currentUnit.goal = zonePosition;
+                        GetNewPath(currentUnit, zonePosition);
                         //Move to Zone, Watch out for enemies
                     }
                 }
-                else
+                else if (zonePosition != Vector2.zero)
                 {
-                    Vector2 myPosition = api.GetWorldPosition(unitId);
-                    Vector2 zonePosition = api.GetZonePosition();
-                    if (zonePosition != null && (myPosition - zonePosition).magnitude < 15f)
+                    if ((myPosition - zonePosition).magnitude < 15f)
                     {
                         //We are in zone, do we chill?
                     }
-                    else
+                    else if (currentUnit.goal != zonePosition)
                     {
-                        //Move to Zone
+                        //If we are not going towards the zone, set the zone as our goal and get a path
+                        currentUnit.goal = zonePosition;
+                        GetNewPath(currentUnit, zonePosition);
                     }
-
                 }
+                else if (currentUnit.goal != middle)
+                {
+                    //If there is no zone at all and if we are not going towards the middle, go towards the middle
+                    currentUnit.goal = middle;
+                    GetNewPath(currentUnit, middle);
+                }
+            }
+            //Last thing we want to do is check if we have a path, if we do lets traverse it
+            if(currentUnit.myPath.Count > 0)
+            {
+                LetsMove(currentUnit);
             }
         }
     }
@@ -123,14 +132,13 @@ public class AI1 : MonoBehaviour
         return units[0];
     }
 
-    void LetsMove(int unitId, Unit unit)
+    void LetsMove(Unit unit)
     {
+        Vector2 pos = api.GetWorldPosition(unit.myId);
         if (unit.iteration < unit.myPath.Count)
         {
             stuckCount++;
             Vector2 target = unit.myPath[unit.iteration].position;
-            Vector2 pos = api.GetWorldPosition(unitId);
-
             if (Vector2.Distance(pos, target) < 2f)
             {
                 unit.iteration++;
@@ -147,17 +155,31 @@ public class AI1 : MonoBehaviour
                 unit.lastPos = pos;
                 stuckCount = 0;
             }
-            float moveAngle = ChangeAngle(unitId, api.GetGridPosFromWorldPos(target));
-            api.Move(unitId, moveAngle);
+            float moveAngle = ChangeAngle(unit.myId, api.GetGridPosFromWorldPos(target));
+            api.Move(unit.myId, moveAngle);
+        }
+        else
+        {
+            unit.iteration = 0;
+            unit.myPath.Clear();
+            unit.lastPos = pos;
+            unit.goal = pos;
         }
     }
 
+    void GetNewPath(Unit unit, Vector2 goal)
+    {
+        unit.myPath.Clear();
+        unit.goal = goal;
+        unit.iteration = 0;
+        unit.myPath = FindPath(unit.myId, goal);
+    }
 
     float ChangeAngle(int unitId, Vector2Int gridPos)
     {
 
         float angle = api.AngleBetweenUnitGridpos(unitId, gridPos);
-        if (angle >= -45 && angle < 45)
+        if (angle >= -22.5f && angle < 22.5f)
         {
             if (myGrid.x + 1 < mapSize && map[myGrid.x + 1, myGrid.y])
             {
@@ -175,7 +197,12 @@ public class AI1 : MonoBehaviour
                 return api.AngleBetweenUnitGridpos(unitId, api.GetGridPos(unitId) - Vector2Int.up);
             }
         }
-        else if (angle >= 45 && angle < 135)
+        else if(angle >= 22.5f && angle < 67.5f)
+        {
+            targetPos = api.GetGridPos(unitId) + Vector2Int.up;
+            return api.AngleBetweenUnitGridpos(unitId, api.GetGridPos(unitId) + Vector2Int.up + Vector2Int.right);
+        }
+        else if (angle >= 67.5f && angle < 112.5f)
         {
             if (myGrid.y + 1 < mapSize && map[myGrid.x, myGrid.y + 1])
             {
@@ -193,7 +220,12 @@ public class AI1 : MonoBehaviour
                 return api.AngleBetweenUnitGridpos(unitId, api.GetGridPos(unitId) - Vector2Int.right);
             }
         }
-        else if (angle >= -135 && angle < -45)
+        else if (angle >= 112.5f && angle < 157.5)
+        {
+            targetPos = api.GetGridPos(unitId) + Vector2Int.up;
+            return api.AngleBetweenUnitGridpos(unitId, api.GetGridPos(unitId) + Vector2Int.up - Vector2Int.right);
+        }
+        else if (angle >= -112.5f && angle < -67.5f)
         {
             if (myGrid.y != 0 && map[myGrid.x, myGrid.y - 1])
             {
@@ -211,7 +243,17 @@ public class AI1 : MonoBehaviour
                 return api.AngleBetweenUnitGridpos(unitId, api.GetGridPos(unitId) - Vector2Int.right);
             }
         }
-        else if (angle >= 135 || angle < -135)
+        else if (angle >= -67.5f && angle < -27.5f)
+        {
+            targetPos = api.GetGridPos(unitId) + Vector2Int.up;
+            return api.AngleBetweenUnitGridpos(unitId, api.GetGridPos(unitId) - Vector2Int.up + Vector2Int.right);
+        }
+        else if (angle >= -157.5 && angle < -112.5f)
+        {
+            targetPos = api.GetGridPos(unitId) + Vector2Int.up;
+            return api.AngleBetweenUnitGridpos(unitId, api.GetGridPos(unitId) - Vector2Int.up - Vector2Int.right);
+        }
+        else if (angle >= 157.5 || angle < -157.5)
         {
             if (myGrid.x != 0 && map[myGrid.x - 1, myGrid.y])
             {
@@ -389,7 +431,6 @@ public class AI1 : MonoBehaviour
 
             if (current.position == goal.position)
             {
-                print("path found!");
                 return Path(start, goal);
             }
 
@@ -568,7 +609,7 @@ public class AI1 : MonoBehaviour
         {
             foreach (Node node in worldMap)
             {
-                if (units[0].myPath.Contains(node))
+                if (units[1].myPath.Contains(node))
                 {
                     Gizmos.color = Color.gray;
                     Gizmos.DrawCube(node.position, new Vector3(1f, 1f, 1f));
@@ -579,7 +620,7 @@ public class AI1 : MonoBehaviour
         {
             foreach (Node node in worldMap)
             {
-                if (units[0].myPath.Contains(node))
+                if (units[2].myPath.Contains(node))
                 {
                     Gizmos.color = Color.blue;
                     Gizmos.DrawCube(node.position, new Vector3(1f, 1f, 1f));
