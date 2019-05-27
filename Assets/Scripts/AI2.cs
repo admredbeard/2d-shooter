@@ -154,12 +154,6 @@ public class AI2 : MonoBehaviour
         unit2Path = new List<Node>();
         unit3Path = new List<Node>();
 
-        Vector2 test = new Vector2(40, 0);
-        Vector2 test2 = new Vector2(0, 40);
-        Vector2 test3 = (test2 - test);
-        test3.Normalize();
-        Debug.Log(test3);
-
         idPlayer1 = myUnits[0];
         idPlayer2 = myUnits[1];
         idPlayer3 = myUnits[2];
@@ -171,9 +165,14 @@ public class AI2 : MonoBehaviour
                 bool trav = map[i, j];
                 Vector2 worldPos = api.GetWorldPosFromGridPos(i, j);
                 initialized_map[i, j] = new Node(worldPos, i, j, trav);
-
+                initialized_map[i, j].visionScore = CalculateNodeValue(new Vector2(i, j));
             }
         }
+        Debug.Log(mapSize);
+        Debug.Log(initialized_map[0, 0].visionScore);
+
+        averageScore = totalScore / mapSize * mapSize;
+
         //Just some tests of A*:::
         Vector2Int aUnitPos = api.GetGridPos(myUnits[0]);
         Node testnode1 = initialized_map[aUnitPos.x, aUnitPos.y];
@@ -192,38 +191,134 @@ public class AI2 : MonoBehaviour
         }
     }
 
+    int totalScore = 0;
+    float averageScore = 0;
+
     private int CalculateNodeValue(Vector2 from)
     {
+
+        List<Vector2Int> visited = new List<Vector2Int>();
         for(int j = 0; j < 4; j++)
         {
             for (int i = 0; i < mapSize; i++)
             {
-                if(j == 0)
+                if (j == 0)
                 {
                     //do with x == 0
                     //line equation---- y-y / x-x  om x1 != x2
                     Vector2 to = new Vector2Int(0, i);
-                    Vector2 line = from - to;
-                   
-
-                    //line.magnitude;
-
+                    Vector2 line = to - from;
+                    int paramLimit = (int)Mathf.Floor(line.magnitude);
+                    line.Normalize();
+                    for (int k = 1; k < paramLimit; k++)
+                    {
+                        Vector2 next = from + line * k;
+                        int x = (int)Mathf.Round(next.x);
+                        int y = (int)Mathf.Round(next.y);
+                        Vector2Int candidate = new Vector2Int(x, y);
+                        
+                        if (map[x, y] && !visited.Contains(candidate))
+                        {
+                            visited.Add(candidate);
+                        }
+                        else if(!map[x,y])
+                        {
+                            break;
+                        }
+                    }
                 }
-                else if(j == 1)
+                else if (j == 1)
                 {
                     //do with x == 40
+                    Vector2 to = new Vector2Int(mapSize - 1, i);
+                    Vector2 line = to - from;
+                    int paramLimit = (int)Mathf.Floor(line.magnitude);
+                    line.Normalize();
+                    for (int k = 1; k < paramLimit; k++)
+                    {
+                        Vector2 next = from + line * k;
+                        int x = (int)Mathf.Round(next.x);
+                        int y = (int)Mathf.Round(next.y);
+                        Vector2Int candidate = new Vector2Int(x, y);
+
+                        if (map[x, y] && !visited.Contains(candidate))
+                        {
+                            visited.Add(candidate);
+                        }
+                        else if (!map[x, y])
+                        {
+                            break;
+                        }
+                    }
                 }
-                else if(j == 2)
+                else if (j == 2)
                 {
                     //do with y == 0
+                    Vector2 to = new Vector2Int(i, 0);
+                    Vector2 line = to - from;
+                    int paramLimit = (int)Mathf.Floor(line.magnitude);
+                    line.Normalize();
+                    if(i == 0)
+                    {
+                        continue;
+                    }
+                    for (int k = 1; k < paramLimit; k++)
+                    {
+                        if(paramLimit == mapSize - 1)
+                        {
+                            break;
+                        }
+                        Vector2 next = from + line * k;
+                        int x = (int)Mathf.Round(next.x);
+                        int y = (int)Mathf.Round(next.y);
+                        Vector2Int candidate = new Vector2Int(x, y);
+
+                        if (map[x, y] && !visited.Contains(candidate))
+                        {
+                            visited.Add(candidate);
+                        }
+                        else if (!map[x, y])
+                        {
+                            break;
+                        }
+                    }
                 }
-                else if(j == 3)
+                else if (j == 3)
                 {
                     //do with y == 40
+                    Vector2 to = new Vector2Int(i, mapSize-1);
+                    Vector2 line = to - from;
+                    int paramLimit = (int)Mathf.Floor(line.magnitude);
+                    line.Normalize();
+                    if(i == 0)
+                    {
+                        continue;
+                    }
+                    for (int k = 1; k < paramLimit; k++)
+                    {
+                        if (paramLimit == mapSize - 1)
+                        {
+                            break;
+                        }
+                        Vector2 next = from + line * k;
+                        int x = (int)Mathf.Round(next.x);
+                        int y = (int)Mathf.Round(next.y);
+                        Vector2Int candidate = new Vector2Int(x, y);
+
+                        if (map[x, y] && !visited.Contains(candidate))
+                        {
+                            visited.Add(candidate);
+                        }
+                        else if (!map[x, y])
+                        {
+                            break;
+                        }
+                    }
                 }
             }
         }
-        return 0;
+        totalScore += visited.Count;
+        return visited.Count;
     }
 
     public void SwapWeapon(int unitID, List<int> enemies)
@@ -432,6 +527,8 @@ public class AI2 : MonoBehaviour
 
     public List<Node> FindPath(Node start, Node goal)
     {
+        bool shouldCover = false;
+       
         if (!goal.traversable)
         {
             goal = GetClosestTraversableNode(start, goal);
@@ -442,6 +539,7 @@ public class AI2 : MonoBehaviour
 
         while (open.Count > 0)
         {
+
             Node current = open[0];
             for (int i = 1; i < open.Count; i++)
             {
@@ -452,6 +550,10 @@ public class AI2 : MonoBehaviour
             }
             open.Remove(current);
             closed.Add(current);
+            if (Vector2.Distance(current.position, goal.position) < mapSize * 2.5f / 4)
+            {
+                shouldCover = true;
+            }
             if (current.position == goal.position)
             {
                 return CreatePath(start, goal);
@@ -463,11 +565,15 @@ public class AI2 : MonoBehaviour
                 {
                     continue;
                 }
-                float newCost = current.gScore + Heuristic(current, neighbour); // add heuristic instead of hscore!
+                float newCost = current.gScore + Heuristic(current, neighbour);
+                if (shouldCover)
+                {
+                    newCost = current.gScore + Heuristic(current, neighbour) + (neighbour.visionScore - averageScore); // add heuristic instead of hscore!
+                }
                 if (newCost < neighbour.gScore || !open.Contains(neighbour))
                 {
                     neighbour.gScore = newCost;
-                    neighbour.hScore = Vector2.Distance(goal.position, neighbour.position);// Distance (goal, neighbour);
+                    neighbour.hScore = Vector2.Distance(goal.position, neighbour.position)*20;// Distance (goal, neighbour);
                     neighbour.cameFrom = current;
 
                     if (!open.Contains(neighbour))
@@ -487,9 +593,10 @@ public class AI2 : MonoBehaviour
         {
             if(!initialized_map[from.x_grid, to.y_grid].traversable || !initialized_map[to.x_grid, from.y_grid].traversable)
             {
-                return 10;
+                return 1000;
             }
         }
+
         return 0;
     }
 
@@ -566,7 +673,7 @@ public class AI2 : MonoBehaviour
         public float gScore;
         public float hScore;
         public float visionScore;
-
+    
         public Node cameFrom;
 
         public bool traversable;
