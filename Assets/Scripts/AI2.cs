@@ -14,6 +14,10 @@ public class AI2 : MonoBehaviour
 
     public bool debugPath = false;
 
+    int maxMagAmmoRifle = 1;
+    int maxMagAmmoShotgun = 2;
+    int maxMagAmmoPistol = 5;
+
     int idPlayer1;
     int idPlayer2;
     int idPlayer3;
@@ -34,59 +38,108 @@ public class AI2 : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-
+        
         if(api.GetZonePosition() != oldZone)
         {
-            unit1Path = FindPath(initialized_map[api.GetGridPos(idPlayer1).x, api.GetGridPos(idPlayer1).y], initialized_map[api.GetGridPosFromWorldPos(api.GetZonePosition()).x, api.GetGridPosFromWorldPos(api.GetZonePosition()).y]);
             oldZone = api.GetZonePosition();
-            if (debugPath)
-            {
-                ShowPath(unit1Path);
-            }
-            if (api.GetWeapon(idPlayer1) == Weapon.Knife)
-            {
-                Debug.Log("jhhusfsdj");
-                if (api.WeaponSwapCooldown(idPlayer1) == 0)
-                {
-                    api.SwapWeapon(idPlayer1, Weapon.Pistol);
-                    Debug.Log(api.GetWeapon(idPlayer1));
-                    api.ReloadWeapon(idPlayer1);
-                }
-            }
         }
         
         List<int> enemies = api.SenseNearbyByTeam(idPlayer1, -myTeamId);
-        if (enemies.Count > 0 && api.TargetInSight(idPlayer1, enemies[0]))
+        enemies.AddRange(api.SenseNearbyByTeam(idPlayer2, -myTeamId));
+        enemies.AddRange(api.SenseNearbyByTeam(idPlayer3, -myTeamId));
+
+        foreach (int unit in myUnits)
         {
-            api.LookAtDirection(idPlayer1, api.AngleBetweenUnits(idPlayer1, enemies[0]));
-            if (!api.CanFire(idPlayer1) && once)
+            //using try for unauthorizedaccessexception
+            try
             {
-                api.ReloadWeapon(idPlayer1);
-                once = false;
-                //do some awesome evade tactic
+                if (enemies.Count > 0 && api.TargetInSight(unit, enemies[0]))
+                {
+                    api.LookAtDirection(unit, api.AngleBetweenUnits(unit, enemies[0]));
+                    if (api.GetWeapon(unit) == Weapon.Knife)
+                    {
+                        api.Attack(unit);
+                    }
+                    else if (api.CanFire(unit) && api.GetDistanceToUnit(unit, enemies[0]) < GetWeaponRange(api.GetWeapon(unit)))
+                    {
+                        api.Attack(unit);
+                    }
+                }
+                //Do some local goal;
+                if (unit == idPlayer1)
+                {
+                    unit1Path = FollowPath(idPlayer1, unit1Path);
+                }
+                else if (unit == idPlayer2)
+                {
+                    unit2Path = FollowPath(idPlayer2, unit2Path);
+                }
+                else if (unit == idPlayer3)
+                {
+                    unit3Path = FollowPath(idPlayer3, unit3Path);
+                }
+               
             }
-            else
+            catch(System.UnauthorizedAccessException e)
             {
-                api.Attack(idPlayer1);
+                Debug.Log(e);
+            }
+            if (api.WeaponSwapCooldown(unit) < 0)
+            {
+                SwapWeapon(unit, enemies);
+            }
+            Reload(unit, enemies);
+        }
+    }
+
+    public void Reload(int unitID, List<int> enemies)
+    {
+        int magAmmo = api.GetMagazineAmmunition(unitID, api.GetWeapon(unitID));
+        if (api.ReloadCooldown(unitID) < 0 && api.WeaponSwapCooldown(unitID) < 0 && magAmmo < GetCurrentWeaponMaxAmmo(api.GetWeapon(unitID)) && api.GetReserveAmmunition(unitID, api.GetWeapon(unitID)) > 0)
+        {
+            if(enemies.Count == 0 || api.GetDistanceToUnit(unitID, enemies[0]) > 30 || !api.TargetInSight(unitID, GetBestEnemy(unitID, enemies)) || magAmmo == 0)
+            {
+                api.ReloadWeapon(unitID);
             }
         }
-        if(api.GetMagazineAmmunition(idPlayer1, Weapon.Pistol) == 0)
+    }
+
+    private float GetWeaponRange(Weapon wep)
+    {
+        if(wep == Weapon.Pistol)
         {
-            once = true;
+            return 30;
+        }
+        else if(wep == Weapon.Shotgun)
+        {
+            return 20;
+        }
+        else if(wep == Weapon.Rifle)
+        {
+            return 60;
         }
         else
         {
-            unit1Path = FollowPath(idPlayer1, unit1Path);
+            return 3;
         }
-        /*
+    }
 
-        foreach (int unitId in myUnits)
+    public int GetCurrentWeaponMaxAmmo(Weapon wep)
+    {
+        if(wep == Weapon.Pistol)
         {
-
-            //Execute your code
-
+            return maxMagAmmoPistol;
+        }else if (wep == Weapon.Shotgun)
+        {
+            return maxMagAmmoShotgun;
+        }else if(wep == Weapon.Rifle)
+        {
+            return maxMagAmmoRifle;
         }
-        */
+        else
+        {
+            return 0;
+        }
     }
 
     List<Node> unit1Path;
@@ -101,6 +154,12 @@ public class AI2 : MonoBehaviour
         unit2Path = new List<Node>();
         unit3Path = new List<Node>();
 
+        Vector2 test = new Vector2(40, 0);
+        Vector2 test2 = new Vector2(0, 40);
+        Vector2 test3 = (test2 - test);
+        test3.Normalize();
+        Debug.Log(test3);
+
         idPlayer1 = myUnits[0];
         idPlayer2 = myUnits[1];
         idPlayer3 = myUnits[2];
@@ -112,20 +171,200 @@ public class AI2 : MonoBehaviour
                 bool trav = map[i, j];
                 Vector2 worldPos = api.GetWorldPosFromGridPos(i, j);
                 initialized_map[i, j] = new Node(worldPos, i, j, trav);
+
             }
         }
         //Just some tests of A*:::
         Vector2Int aUnitPos = api.GetGridPos(myUnits[0]);
         Node testnode1 = initialized_map[aUnitPos.x, aUnitPos.y];
-        Node testnode2 = initialized_map[0, 0];
- 
-        unit1Path = FindPath(testnode1, testnode2);
+        Node testnode2 = initialized_map[10, 10];
+        Node testnode3 = initialized_map[0, 10];
+        Node testnode4 = initialized_map[10, 0];
 
+
+        unit1Path = FindPath(testnode1, testnode2);
+        unit2Path = FindPath(testnode1, testnode3);
+        unit3Path = FindPath(testnode1, testnode4);
 
         if (debugPath)
         {
             ShowPath(unit1Path);
         }
+    }
+
+    private int CalculateNodeValue(Vector2 from)
+    {
+        for(int j = 0; j < 4; j++)
+        {
+            for (int i = 0; i < mapSize; i++)
+            {
+                if(j == 0)
+                {
+                    //do with x == 0
+                    //line equation---- y-y / x-x  om x1 != x2
+                    Vector2 to = new Vector2Int(0, i);
+                    Vector2 line = from - to;
+                   
+
+                    //line.magnitude;
+
+                }
+                else if(j == 1)
+                {
+                    //do with x == 40
+                }
+                else if(j == 2)
+                {
+                    //do with y == 0
+                }
+                else if(j == 3)
+                {
+                    //do with y == 40
+                }
+            }
+        }
+        return 0;
+    }
+
+    public void SwapWeapon(int unitID, List<int> enemies)
+    {
+        int highestThreatID = -1;
+        float distanceToThreat = -1;
+        bool enemyInSight = false;
+        int rifleAmmo = api.GetReserveAmmunition(unitID, Weapon.Rifle) + api.GetMagazineAmmunition(unitID, Weapon.Rifle);
+        int shotgunAmmo = api.GetReserveAmmunition(unitID, Weapon.Shotgun) + api.GetMagazineAmmunition(unitID, Weapon.Shotgun);
+        int pistolAmmo = api.GetReserveAmmunition(unitID, Weapon.Pistol) + api.GetMagazineAmmunition(unitID, Weapon.Pistol);
+
+        if (enemies.Count > 0)
+        {
+            highestThreatID = GetBestEnemy(unitID, enemies);
+            enemyInSight = api.TargetInSight(unitID, highestThreatID);
+            distanceToThreat = api.GetDistanceToUnit(unitID, highestThreatID);
+        }
+        if(distanceToThreat < 3 && distanceToThreat != -1)
+        {
+            api.SwapWeapon(unitID, Weapon.Knife);
+        }
+        else if(pistolAmmo > 0 && DecisionPistol(distanceToThreat, enemyInSight, shotgunAmmo, rifleAmmo))
+        {
+            if(api.GetWeapon(unitID) != Weapon.Pistol)
+            {
+                api.SwapWeapon(unitID, Weapon.Pistol);
+            }
+        }
+        else if(shotgunAmmo > 0 && DecisionShotgun(distanceToThreat, api.GetMagazineAmmunition(unitID, Weapon.Shotgun),enemyInSight,api.IsUnitInZone(unitID),pistolAmmo,rifleAmmo))
+        {
+            if (api.GetWeapon(unitID) != Weapon.Shotgun)
+            {
+                api.SwapWeapon(unitID, Weapon.Shotgun);
+            }
+        }
+        else if(rifleAmmo > 0 && DecisionRifle(distanceToThreat, pistolAmmo, shotgunAmmo))
+        {
+            if (api.GetWeapon(unitID) != Weapon.Rifle)
+            {
+                api.SwapWeapon(unitID, Weapon.Rifle);
+            }
+        }
+        else if(rifleAmmo == 0 && pistolAmmo == 0 && shotgunAmmo == 0)
+        {
+            if (api.GetWeapon(unitID) != Weapon.Knife)
+            {
+                api.SwapWeapon(unitID, Weapon.Knife);
+            }
+        }
+
+    }
+
+    private bool DecisionPistol(float distanceToThreat, bool enemyInSight, int shotgunAmmo, int rifleAmmo)
+    {
+        //medium quarter, might change this cus we prioritize pistol instead of rifle atm
+        if (distanceToThreat > 10 || distanceToThreat == -1)
+        {
+            //change if we cant shoot
+            if (!enemyInSight)
+            {
+                return true;
+            }
+        }
+        //no other weapon available
+        if (shotgunAmmo == 0 && rifleAmmo == 0)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private bool DecisionShotgun(float distanceToThreat, float magAmmo, bool enemyInSight, bool isInZone, int pistolAmmo, int rifleAmmo)
+    {
+        //Close quarter
+        if (distanceToThreat < 10 && distanceToThreat != -1)
+        {
+            //we can swap if we dont wanna shoot
+            if (!enemyInSight)
+            {
+                return true;
+            }
+            //Change to shotgun if there is ammo in mag (saving reload time) instead of rifle
+            if (pistolAmmo == 0 && magAmmo > 0)
+            {
+                return true;
+            }
+        }
+        //no enemies, we in zone, lets get ready for close quarter
+        if (isInZone && (distanceToThreat == -1 || !enemyInSight))
+        {
+            return true;
+        }
+        //no other weapon available
+        if (pistolAmmo == 0 && rifleAmmo == 0)
+        {
+            return true;
+        }
+        return false;
+    }
+    private bool DecisionRifle(float distanceToThreat, int pistolAmmo, int shotgunAmmo)
+    {
+        //rifle for long range might be bad, pistol is bad
+        if (distanceToThreat != -1 && distanceToThreat > 20)
+        {
+            return true;
+        }
+        //rifle instead of pistol when no more ammo
+        if (pistolAmmo == 0 && (distanceToThreat == -1 || distanceToThreat > 10))
+        {
+            return true;
+        }
+        //no other weapon available
+        if (pistolAmmo == 0 && shotgunAmmo == 0)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public int GetBestEnemy(int unitID, List<int> enemies)
+    {
+        int bestEnemy = 10000;
+        int bestPathLenght = 10000;
+        //Finding the closest unit at the moment
+        foreach(int enemyID in enemies)
+        {
+            if(api.TargetInSight(unitID, enemyID))
+            {
+                return enemyID;
+            }
+            Vector2Int enemyGridPos = api.GetGridPos(enemyID);
+            Vector2Int unitGridPos = api.GetGridPos(unitID);
+            List<Node> pathToEnemy = FindPath(initialized_map[unitGridPos.x, unitGridPos.y], initialized_map[enemyGridPos.x, enemyGridPos.y]);
+            if(pathToEnemy.Count < bestPathLenght)
+            {
+                bestEnemy = enemyID;
+                bestPathLenght = pathToEnemy.Count;
+            }
+        }
+        return bestEnemy;
+
     }
 
     public List<Node> FollowPath(int unitID, List<Node> path)
@@ -326,6 +565,7 @@ public class AI2 : MonoBehaviour
 
         public float gScore;
         public float hScore;
+        public float visionScore;
 
         public Node cameFrom;
 
