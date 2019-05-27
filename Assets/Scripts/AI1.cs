@@ -14,6 +14,7 @@ public class AI1 : MonoBehaviour
     bool[,] map;
     Vector2Int myGrid;
     Vector2 zonePos;
+    float zoneRadius;
     int mapSize;
     Vector2Int targetPos;
     List<Node> path;
@@ -30,7 +31,7 @@ public class AI1 : MonoBehaviour
         mapSize = api.GetMapSize();
         map = api.GetMap();
         targetPos = api.GetGridPos(myUnits[0]);
-
+        zoneRadius = api.GetZoneRadius();
         foreach (int unitId in myUnits)
             units.Add(new Unit(unitId));
 
@@ -46,11 +47,11 @@ public class AI1 : MonoBehaviour
         foreach (int unitId in myUnits)
         {
             Unit currentUnit = GetUnit(unitId);
-            if (currentUnit.myPath.Count == 0 && api.GetZonePosition() == Vector2.zero)
+            zonePos = GetZone();
+            if ((currentUnit.myPath.Count == 0 && api.GetZonePosition() == Vector2.zero) || (currentUnit.myPath.Count > currentUnit.iteration && Vector2.Distance(currentUnit.myPath[currentUnit.iteration].position, api.GetWorldPosition(unitId)) > 10))
             {
                 Vector2 middle = GetMapMiddle();
                 worldMap[GetXPos(middle.x), GetYPos(middle.y)].center = true;
-                zonePos = GetZone();
                 currentUnit.goal = middle;
                 GetNewPath(currentUnit, middle);
             }
@@ -69,8 +70,7 @@ public class AI1 : MonoBehaviour
                 else
                 {
                     Vector2 myPosition = api.GetWorldPosition(unitId);
-                    Vector2 zonePosition = api.GetZonePosition();
-                    if (zonePosition != null && (myPosition - zonePosition).magnitude < 15f)
+                    if (zonePos != null && (myPosition - zonePos).magnitude < zoneRadius)
                     {
                         //We are in zone, enemy is clear line of sight, take cover since we cant shoot?
                     }
@@ -84,12 +84,13 @@ public class AI1 : MonoBehaviour
             {
                 List<int> nearby = api.SenseNearbyByTeam(unitId, -myTeamId);
                 Vector2 myPosition = api.GetWorldPosition(unitId);
-                Vector2 zonePosition = api.GetZonePosition();
                 if (nearby.Count > 0)
                 {
+
                     List<int> nearbyTeammates = api.SenseNearbyByTeam(unitId, myTeamId);
                     int bestEnemy = FindNearestEnemy(unitId, nearby));
-                    if (zonePosition != Vector2.zero && (myPosition - zonePosition).magnitude < 15f)
+                    if (zonePos != Vector2.zero && (myPosition - zonePos).magnitude < zoneRadius)
+
                     {
                         if (nearbyTeammates.Count + 1 > nearby.Count)
                         {
@@ -105,28 +106,29 @@ public class AI1 : MonoBehaviour
 
                         //We are in zone, enemy is probabyly too, do we chill?
                     }
-                    else if (zonePosition != Vector2.zero)
+                    else if (zonePos != Vector2.zero)
                     {
-                        currentUnit.goal = zonePosition;
-                        GetNewPath(currentUnit, zonePosition);
+                        currentUnit.goal = zonePos;
+                        GetNewPath(currentUnit, zonePos);
                         //Move to Zone, Watch out for enemies
                     }
                 }
-                else if (zonePosition != Vector2.zero)
+                else if (zonePos != Vector2.zero)
                 {
-                    if ((myPosition - zonePosition).magnitude < 15f)
+                    if ((myPosition - zonePos).magnitude < zoneRadius)
                     {
                         //We are in zone, do we chill?
                     }
-                    else if (currentUnit.goal != zonePosition)
+                    else if (currentUnit.goal != zonePos)
                     {
                         //If we are not going towards the zone, set the zone as our goal and get a path
-                        currentUnit.goal = zonePosition;
-                        GetNewPath(currentUnit, zonePosition);
+                        currentUnit.goal = zonePos;
+                        GetNewPath(currentUnit, zonePos);
                     }
                 }
             }
             //Last thing we want to do is check if we have a path, if we do lets traverse it
+
             if (currentUnit.myPath.Count > 0)
             {
                 LetsMove(currentUnit);
@@ -169,7 +171,7 @@ public class AI1 : MonoBehaviour
         {
             stuckCount++;
             Vector2 target = unit.myPath[unit.iteration].position;
-            if (Vector2.Distance(pos, target) < 2f)
+            if (Vector2.Distance(pos, target) < 1f)
             {
                 unit.iteration++;
                 if (unit.iteration < unit.myPath.Count)
@@ -177,10 +179,10 @@ public class AI1 : MonoBehaviour
             }
             if (stuckCount > 100 && unit.myPath != null)
             {
-                if (unit.iteration > 2 && (unit.lastPos - pos).magnitude < 2f)
+                if (unit.iteration > 2 && (unit.lastPos - pos).magnitude < 1f)
                 {
-                    print("reverting");
-                    unit.iteration -= 2;
+                    unit.goal = api.GetGridPos(unit.myId);
+                    GetNewPath(unit, unit.goal);
                 }
                 unit.lastPos = pos;
                 stuckCount = 0;
@@ -463,7 +465,7 @@ public class AI1 : MonoBehaviour
         open.Add(start);
         int count = 0;
 
-        while (open.Count > 0 && count < 1500)
+        while (open.Count > 0 && count < 2500)
         {
 
             count++;
@@ -508,12 +510,12 @@ public class AI1 : MonoBehaviour
 
     int GetXPos(float x)
     {
-        return (int)(x / 2.5f);
+        return (int)Mathf.Round(x / 2.5f);
     }
 
     int GetYPos(float y)
     {
-        return (int)(y / 2.5f);
+        return (int)Mathf.Round(y / 2.5f);
     }
     List<Node> Path(Node start, Node goal)
     {

@@ -256,7 +256,7 @@ public class GameController : MonoBehaviour
         while (true)
         {
             GameObject zone = Instantiate(zoneObj, GetRandomZonePosition(), Quaternion.identity);
-            yield return new WaitForSeconds(30f);
+            yield return new WaitForSeconds(10f);
             Destroy(zone);
         }
     }
