@@ -11,7 +11,6 @@ public class AI2 : MonoBehaviour
     bool[,] map;
     int mapSize;
     private Node[,] initialized_map;
-
     public bool debugPath = false;
 
     int maxMagAmmoRifle = 1;
@@ -29,7 +28,6 @@ public class AI2 : MonoBehaviour
         myTeamId = api.teamId;
         myUnits = api.GetPlayers(myTeamId);
         mapSize = (int)Mathf.Sqrt(map.Length);
-        
         Init();
     }
 
@@ -38,7 +36,6 @@ public class AI2 : MonoBehaviour
     // Update is called once per frame
     void FixedUpdate()
     {
-        
         if(api.GetZonePosition() != oldZone)
         {
             oldZone = api.GetZonePosition();
@@ -570,7 +567,6 @@ public class AI2 : MonoBehaviour
         public Node cameFrom;
 
         public bool traversable;
-
         public Node(Vector2 worldPos, int gridX, int gridY, bool traverse)
         {
             this.position = worldPos;
